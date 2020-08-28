@@ -54,4 +54,6 @@ typedef struct semdev {
     semd_t terminalT[DEV_PER_INT];
 } semdev;
 
+semdev devSem;
+
 #endif

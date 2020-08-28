@@ -1,10 +1,10 @@
 #ifndef _CONST_H
 #define _CONST_H
 
-/**************************************************************************** 
+/****************************************************************************
  *
  * This header file contains the global constant & macro definitions.
- * 
+ *
  ****************************************************************************/
 
 #ifdef TARGET_UMPS
@@ -14,6 +14,8 @@
 #ifdef TARGET_UARM
 	#include "constuarm.h"
 #endif
+
+#include "const_bikaya.h"
 
 #define RAMBASE    *((unsigned int *)BUS_REG_RAM_BASE)
 #define RAMSIZE    *((unsigned int *)BUS_REG_RAM_SIZE)
@@ -52,5 +54,8 @@
 #define DEFAULT_PRIORITY 1
 #define TRUE             1
 #define FALSE            0
+
+// COSTATI PER LA GESTIONE DEI DEVICE ESTERNI
+#define DEV_REGS_SIZE 0x10
 
 #endif

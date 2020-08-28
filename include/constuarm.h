@@ -17,4 +17,7 @@
 	#define stack_pointer 			sp
 	#define prog_counter 			pc
 
+//Gestione device esterni
+#define DEV_REGS_BASE 0x00000040
+
 #endif

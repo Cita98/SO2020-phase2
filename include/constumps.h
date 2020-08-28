@@ -59,6 +59,11 @@
 
 #define DEV_USED_INTS 5 /* Number of ints reserved for devices: 3,4,5,6,7 */
 #define DEV_PER_INT   8 /* Maximum number of devices per interrupt line */
+#define DEV_REGS_BASE 0x10000050
+
+// Possibili status dei device
+#define DEV_NOT_INSTALLED 0
+#define DEV_S_READY 1
 
 
 #endif
