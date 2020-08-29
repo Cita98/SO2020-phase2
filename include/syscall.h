@@ -14,7 +14,6 @@ int get_SysNumb(pcb_t* curr_proc);
 //int get_SysNumb(state_t* curr_proc);
 
 //SYS 3
-#define TERMINATE_PROCESS 3
 void terminate_process(pcb_t* curr_proc);
 
 #endif

@@ -26,15 +26,17 @@ void int_handler(){
 
 }
 
+//NOTA: i parametri delle syscall si trovano nei registri a0-a3 su umps e a1-a4 su uarm
+//		al termine della syscall il valore di ritorno va messo nel registro v0 per umps a1 per uarm
 
-void syscall_handler()
+void syscall_handler() 
 {
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
 	state_t* old_proc =((state_t*) SYSCALL_OLDAREA);
 	
 	#ifdef TARGET_UMPS
-		//Incremento program counter del processo
-		old_proc->prog_counter += 1;
+		//Incremento program counter del processo di 4 byte
+		old_proc->prog_counter += 4;
 	#endif
 	
 	/* Copio lo stato del processo interrotto nel processo corrente */
@@ -46,12 +48,48 @@ void syscall_handler()
 
 	switch(SysNumb)
 	{	
-			case(TERMINATE_PROCESS):
+			case(GETCPUTIME):
+				//Restituisce il tempo trascorso dalla prima esecuzione del processo
+				//Quanto tempo passato come utente, kernel (tempi di syscall e int), tempo totale trascorso 
+			
+			break;
+			
+			case(CREATEPROCESS):
+			
+			
+			break;
+			
+			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
 				terminate_process(cur_proc);
 					/* Richiamo lo scheduler per passare al prossimo processo */
 				setNULL();
 				scheduler();
+			break;
+			
+			case(VERHOGEN):
+			
+			
+			break;
+			
+			case(PASSEREN):
+			
+			
+			break;
+			
+			case(WAITIO):
+			
+			
+			break;
+			
+			case(SPECPASSUP):
+			
+			
+			break;
+			
+			case(GETPID):
+			
+			
 			break;
 			
 			default: /* In tutti gli altri casi errore */
