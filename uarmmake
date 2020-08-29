@@ -9,7 +9,7 @@ UARM_DIR = ./uarm
 INCLUDE_DIR = ./include
 
 # Compiler options
-CFLAGS_LANG = 
+CFLAGS_LANG =
 CFLAGS_UARM = -mcpu=arm7tdmi -DTARGET_UARM=1
 CFLAGS = $(CFLAGS_LANG) $(CFLAGS_UARM) -I$(UARM_DIR) -I$(UARM_DIR)/uarm -I$(INCLUDE_DIR) -Wall -O0
 
@@ -23,7 +23,7 @@ VPATH = $(UARM_DIR)
 
 all : kernel
 
-kernel : pcb.o asl.o p1.5test_bikaya_v0.o crtso.o libdiv.o libuarm.o handler.o interrupt.o main.o scheduler.o syscall.o utilis.o tlb.o trap.o
+kernel : pcb.o asl.o p2test_bikaya_v0.3.o crtso.o libdiv.o libuarm.o handler.o interrupt.o main.o scheduler.o syscall.o utilis.o tlb.o trap.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 clean:

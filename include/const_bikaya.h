@@ -1,32 +1,8 @@
-#ifndef _CONSTUMPS_H
-#define _CONSTUMPS_H
+#ifndef CONST_BIKAYA_INCLUDED
+#define CONST_BIKAYA_INCLUDED
 
-#include "umps/libumps.h"
-#include "umps/arch.h"
-#include "umps/types.h"
-#include "umps/cp0.h"
+#ifdef TARGET_UMPS
 
-/* Utili */
-#define CAUSE_IP_GET(cause, int_no) ((cause) & (1 << ((int_no) + 8)))
-
-/* Costanti */
- #define FRAMESIZE 				4096
-
-//Rinominazione per unificare i nomi nelle due architetture
-#define prog_counter 		pc_epc
-#define stack_pointer 		reg_sp
-
-/* Indirizzi old e new areas */
-#define INT_NEWAREA 		0x2000008c
-#define INT_OLDAREA 		0x20000000
-#define TLB_NEWAREA 		0x200001a4
-#define TLB_OLDAREA 		0x20000118
-#define PGMTRAP_NEWAREA 	0x200002bc
-#define PGMTRAP_OLDAREA 	0x20000230
-#define SYSCALL_NEWAREA 	0x200003d4
-#define SYSCALL_OLDAREA 	0x20000348
-
-//Phase 2
 
 /* Values for CP0 Cause.ExcCode */
 #define EXC_INTERRUPT      0
@@ -59,11 +35,26 @@
 
 #define DEV_USED_INTS 5 /* Number of ints reserved for devices: 3,4,5,6,7 */
 #define DEV_PER_INT   8 /* Maximum number of devices per interrupt line */
-#define DEV_REGS_BASE 0x10000050
 
-// Possibili status dei device
-#define DEV_NOT_INSTALLED 0
-#define DEV_S_READY 1
+#endif
 
+#ifdef TARGET_UARM
+#include "uarm/uARMconst.h"
+#endif
+
+
+/* nucleus (phase2)-handled SYSCALL values */
+#define GETCPUTIME       1
+#define CREATEPROCESS    2
+#define TERMINATEPROCESS 3
+#define VERHOGEN         4
+#define PASSEREN         5
+#define WAITIO           6
+#define SPECPASSUP       7
+#define GETPID           8
+
+#define DEFAULT_PRIORITY 1
+#define TRUE             1
+#define FALSE            0
 
 #endif
