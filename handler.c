@@ -43,7 +43,7 @@ void syscall_handler()
 	/* Copio lo stato del processo interrotto nel processo corrente */
 	updateCurrentProc(old_proc);
 
-	unsigned int param[3];
+	unsigned int* param[3];
 	unsigned int result;
 
 	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
@@ -75,18 +75,18 @@ void syscall_handler()
 			break;
 			
 			case(VERHOGEN):
-			
-			
+					//Operazione di rilascio sul semaforo
+				verhogen((int*)*param[0]);
 			break;
 			
 			case(PASSEREN):
-			
-			
+					//Operazione di richiesta di un semaforo
+				passaren((int*)*param[0]);
 			break;
 			
 			case(WAITIO):
 			
-				result = do_io(param[0],(unsigned int*)param[1],(int)param[2], cur_proc);
+				result = do_io(*param[0],(unsigned int*)*param[1],(int)*param[2], cur_proc);
 				if(result != DEV_NOT_INSTALLED)
 				{
 					setNULL();
@@ -96,8 +96,8 @@ void syscall_handler()
 			break;
 			
 			case(SPECPASSUP):
-			
-			
+					//Assegnamento gestore di livello superiore
+				spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
 			break;
 			
 			case(GETPID):

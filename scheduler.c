@@ -72,6 +72,11 @@ int initProcess(int priority, unsigned int pc) //Inizializzazione del processo d
 		newPcb->priority = priority;
 		newPcb->original_priority = priority;
 		newPcb->p_s.prog_counter = pc;
+			///Inizializzazione variabili Spec_PassUp
+		newPcb->spec_assigned[0] = FALSE; // Syscall/breakpoint
+		newPcb->spec_assigned[1] = FALSE; // TLB
+		newPcb->spec_assigned[2] = FALSE; // Program trap
+		
 		insertProcQ(head_rd,newPcb);
 	}
 	return nRet;

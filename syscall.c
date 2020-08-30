@@ -119,50 +119,24 @@ void verhogen(int* semaddr){
 	
 }
 
-
+//Valutare una vPasseren che prenda in ingresso anche il processo da bloccare, potrebbe servire nella Do_Io
 //SYSCALL 5
 void passeren(int* semaddr){
-	
-	
 
-	
-	
-}
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
-//SYSCALL 5
-void passeren(int *semaddr)
-{
-
+		//Decremento il valore del semaforo, richiesta della risorsa
+	*semaddr -= 1;
+		//Blocco il processo al semaforo in caso ce ne fosse bisogno
+	if(*semaddr < 0){
+		pcb_t* cur_proc = runningProc();
+			//Blocco il processo al semaforo
+		insertBlocked(semaddr, proc);
+		
+//TEMPO DELLA GET CPU TIME DA GESTIRE
+		
+		cur_proc = NULL;
+			//Richiamo lo scheduler per passare alla gestione di un altro processo
+		scheduler();
+	}
 }
 
 //SYSCALL 6
@@ -260,4 +234,35 @@ void blockProcAtDev(int type, int line, int subdevice, pcb_t* proc){
 		}
 
 	}
->>>>>>> ccade35ca2688723f33035ebbd1d6c9b637479c2
+
+//SYSCALL 7
+void spec_passup(int type, state_t* old, state_t* new){
+	
+	pcb_t* cur_proc = runningProc();
+	
+		//Se la syscall è già stata richiamata, c'è già un assegnamento per quel tipo
+	if(cur_proc->spec_assigned[type]){
+			//Terminazione con "errore"
+		return(-1);
+	}
+	else{
+			//Assegnazione dell'handler di livello superiore per quel tipo
+		cur_proc->spec_oarea[type] = old;
+		cur_proc->spec_narea[type] = new;
+			//Indico che è già stato effettuato un assegnamento per quel tipo
+		cur_proc->spec_assigned[type] = TRUE;
+			//Terminazione con successo
+		return(0);
+	}	
+}
+
+
+
+
+
+
+
+
+
+
+
