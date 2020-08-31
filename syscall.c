@@ -215,10 +215,7 @@ void fintTYPEandLINE(int* ptype, int* pline, unsigned int* preg )
 	*pline = line;
 }
 
-/*				!!!!!!!!!!		ATTENZIONME INCOMPLETA E/O ERRATA		!!!!!!!!!!					*/
 void blockProcAtDev(int type, int line, int subdevice){
-
-		//insertProcQ(&(Semd_key->s_procQ), proc); /*Aggiungo p alla coda dei processi bloccati associati a Semd_key */
 
 		switch(type){
 

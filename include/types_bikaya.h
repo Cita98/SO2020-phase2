@@ -9,6 +9,8 @@
 #endif
 #include "listx.h"
 
+#include "const.h"
+
 typedef unsigned int memaddr;
 
 // Process Control Block (PCB) data structure
