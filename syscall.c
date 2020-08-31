@@ -2,6 +2,7 @@
 #include "uARMtypes.h"
 #include "const.h"
 #include "types_bikaya.h"
+#include "interrupt.h"
 
 
 void init_syscall(){ //Inizializzazione syscall new area
@@ -53,7 +54,7 @@ int get_SysNumb(pcb_t* curr_proc){
 	return(SysNumb);
 }
 
-void get_param(unsigned int* param, pcb_t* curr_proc){
+void get_param(unsigned int** param, pcb_t* curr_proc){
 	#ifdef TARGET_UMPS
 		param[0] = curr_proc->p_s.reg_a1;
 		param[1] = curr_proc->p_s.reg_a2;
@@ -68,28 +69,28 @@ void get_param(unsigned int* param, pcb_t* curr_proc){
 
 //SYSCALL 2
 void create_process(state_t *state_p, int priority, void** cpid){
-	
+
 	pcb_t * new_proc = allocPcb();
-	
+
 	if(new_proc == NULL) return(-1); //Errore, non è stato creato un nuovo processo
 	else{
 			//Setto la priorità e lo stato del nuovo processo
 		new_proc->original_priority = priority;
 		cp_state(state_p, *(new_proc->p_s));
-		
+
 		pcb_t* cur_proc = runningProc();
-		
+
 			//Aggiungo il processo come figlio del corrente e lo iserisco nella lista dei processi pronti
 		insertChild(cur_proc, new_proc);
 		insertProcQ(head_rd, new_proc);
-		
+
 			//cpid contiene l'identificatore del processo figlio
 		if(cpid!=NULL) *((pcb_t **)cpid) = new_proc;
-		
+
 			//Tutto è andato a buon fine, ritorno 0
 		return(0);
 	}
-	
+
 }
 
 
@@ -107,16 +108,16 @@ void terminate_process(pcb_t* curr_proc) 	// Rimuovo il processo da terminare e 
 
 //SYSCALL 4
 void verhogen(int* semaddr){
-	
+
 	pcb_t *proc = NULL;
 		//incremento il valore del semaforo, operazione di rilascio
 	*semaddr += 1;
 		//sveglio un processo in attesa sul semaforo
 	if(*semaddr <= 0) proc = removeBlocked(semaddr);
-	
+
 		//se ho svegliato un processo lo inserisco nella nella ready queue
 	if(proc!=NULL) insertProcQ(head_rd, proc);
-	
+
 }
 
 //Valutare una vPasseren che prenda in ingresso anche il processo da bloccare, potrebbe servire nella Do_Io
@@ -130,17 +131,18 @@ void passeren(int* semaddr){
 		pcb_t* cur_proc = runningProc();
 			//Blocco il processo al semaforo
 		insertBlocked(semaddr, proc);
-		
+
 //TEMPO DELLA GET CPU TIME DA GESTIRE
-		
+
 		cur_proc = NULL;
+		setNULL();
 			//Richiamo lo scheduler per passare alla gestione di un altro processo
 		scheduler();
 	}
 }
 
 //SYSCALL 6
-int do_io(unsigned int command, unsigned int* devRegister, int subdevice, pcb_t* proc)
+int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 {
 	devreg_t* reg = (devreg_t*)devRegister;
 	int type;	//Tipo di device
@@ -167,18 +169,29 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice, pcb_t*
 		reg_command = &(reg->dtp.command);
 	}
 
-	switch (*reg_status) {
-		case DEV_NOT_INSTALLED:
-			return(*reg_status);
-		break;
-		case DEV_S_READY:
-			*reg_command = command;
-		break;
+	// switch (*reg_status) {
+	// 	case DEV_NOT_INSTALLED:
+	// 		return(*reg_status);
+	// 	break;
+	// 	case DEV_S_READY:
+	// 		*reg_command = command;
+	// 	break;
+	// }
+
+	if (*reg_status == DEV_S_READY)
+	{
+		//Eseguo il comando
+		*reg_command = command;
+		//Blocco il processo
+		blockProcAtDev(type,line,subdevice);
+		//Restituisco lo status register
+		result = DEV_S_READY;
+	}else
+	{
+		result = *reg_status;
 	}
 
-	blockProcAtDev(type,line,subdevice,proc);
-
-	return(*reg_status);
+	return(result);
 }
 
 //DEV_REGS_BASE indirizzo base dei registri per i device esterni
@@ -203,33 +216,36 @@ void fintTYPEandLINE(int* ptype, int* pline, unsigned int* preg )
 }
 
 /*				!!!!!!!!!!		ATTENZIONME INCOMPLETA E/O ERRATA		!!!!!!!!!!					*/
-void blockProcAtDev(int type, int line, int subdevice, pcb_t* proc){
+void blockProcAtDev(int type, int line, int subdevice){
 
 		//insertProcQ(&(Semd_key->s_procQ), proc); /*Aggiungo p alla coda dei processi bloccati associati a Semd_key */
 
 		switch(type){
 
 			case 3: //DISK
-			insertProcQ(&(devSem.disk[line].s_procQ), proc);
+			passeren(&(sem_dev.disk[line]));
 			break;
 
 			case 4: //TAPE
-			insertProcQ(&(devSem.tape[line].s_procQ), proc);
+			passeren(&(sem_dev.tape[line]));
 			break;
 
 			case 5: //UNUSED OR NETWORK
-			insertProcQ(&(devSem.network[line].s_procQ), proc);
+			passeren(&(sem_dev.network[line]));
 			break;
 
 			case 6: //PRINTER
-			insertProcQ(&(devSem.printer[line].s_procQ), proc);
+			passeren(&(sem_dev.printer[line]));
 			break;
 
 			case 7: //TERMINAL
 				if(subdevice){ //se è true il terminale è in ricezione
-					insertProcQ(&(devSem.terminalR[line].s_procQ), proc);
-				} //altrimenti in trasmissione
-				else{insertProcQ(&(devSem.terminalT[line].s_procQ), proc);}
+					passeren(&(sem_dev.terminalR[line]));
+				}
+				else //altrimenti in trasmissione
+				{
+					passeren(&(sem_dev.terminalT[line]));
+				}
 			break;
 		}
 
@@ -237,9 +253,9 @@ void blockProcAtDev(int type, int line, int subdevice, pcb_t* proc){
 
 //SYSCALL 7
 void spec_passup(int type, state_t* old, state_t* new){
-	
+
 	pcb_t* cur_proc = runningProc();
-	
+
 		//Se la syscall è già stata richiamata, c'è già un assegnamento per quel tipo
 	if(cur_proc->spec_assigned[type]){
 			//Terminazione con "errore"
@@ -253,16 +269,5 @@ void spec_passup(int type, state_t* old, state_t* new){
 		cur_proc->spec_assigned[type] = TRUE;
 			//Terminazione con successo
 		return(0);
-	}	
+	}
 }
-
-
-
-
-
-
-
-
-
-
-

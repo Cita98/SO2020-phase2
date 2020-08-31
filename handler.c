@@ -13,23 +13,48 @@ void int_handler(){
 	/* Copio lo stato del processo interrotto nel processo corrente */
 	updateCurrentProc(old_proc);
 
+	unsigned int cause = getCAUSE();
 
-	 if(CAUSE_IP_GET(getCAUSE(),INTERVAL_TIMER))
+	if(CAUSE_IP_GET(cause,INT_TIMER))
 	{
 		//Ack dell'interrupt, riavvio il timer
 		setIT_TIMER(TIME_SLICE);
 		// Richiamo lo scheduler per far partire il prossimo processo
 		scheduler();
 
-	} //In tutti gli altri casi, errore
-	else PANIC();
+	}
+
+	if(CAUSE_IP_GET(cause,INT_DISK))
+	{
+		intDisk();
+	}
+
+	if(CAUSE_IP_GET(cause,INT_TAPE))
+	{
+		intTape();
+	}
+
+	if(CAUSE_IP_GET(cause,INT_UNUSED))
+	{
+		intNet();
+	}
+
+	if(CAUSE_IP_GET(cause,INT_PRINTER))
+	{
+		intPrint();
+	}
+
+	if(CAUSE_IP_GET(cause,INT_TERMINAL))
+	{
+		intTerm();
+	}
 
 }
 
 //NOTA: i parametri delle syscall si trovano nei registri a0-a3 su umps e a1-a4 su uarm
 //		al termine della syscall il valore di ritorno va messo nel registro v0 per umps a1 per uarm
 
-void syscall_handler() 
+void syscall_handler()
 {
 
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
@@ -40,7 +65,7 @@ void syscall_handler()
 		old_proc->prog_counter += 4;
 	#endif
 
-	/* Copio lo stato del processo interrotto nel processo corrente */
+	/* Copio lo stato del processo interrotto nel processo corrente dello scheduler*/
 	updateCurrentProc(old_proc);
 
 	unsigned int* param[3];
@@ -53,19 +78,18 @@ void syscall_handler()
 
 
 	switch(SysNumb)
-	{	
+	{
 			case(GETCPUTIME):
 				//Restituisce il tempo trascorso dalla prima esecuzione del processo
-				//Quanto tempo passato come utente, kernel (tempi di syscall e int), tempo totale trascorso 
-			
+				//Quanto tempo passato come utente, kernel (tempi di syscall e int), tempo totale trascorso
+
 			break;
-			
+
 			case(CREATEPROCESS):
-			
-			
+
+
 			break;
-			
-	{
+
 			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
 				terminate_process(cur_proc);
@@ -73,42 +97,49 @@ void syscall_handler()
 				setNULL();
 				scheduler();
 			break;
-			
+
 			case(VERHOGEN):
 					//Operazione di rilascio sul semaforo
 				verhogen((int*)*param[0]);
 			break;
-			
+
 			case(PASSEREN):
 					//Operazione di richiesta di un semaforo
-				passaren((int*)*param[0]);
+				passeren((int*)*param[0]);
 			break;
-			
+
 			case(WAITIO):
-			
-				result = do_io(*param[0],(unsigned int*)*param[1],(int)*param[2], cur_proc);
-				if(result != DEV_NOT_INSTALLED)
+
+				result = do_io(*param[0],(unsigned int*)*param[1],(int)*param[2]);
+				if(result != DEV_S_READY)
 				{
-					setNULL();
-					scheduler();
+					#ifdef TARGET_UMPS
+						cur_proc->p_s.reg_vo = result;
+					#endif
+					#ifdef TARGET_UARM
+						cur_proc->p_s.a1 = result;
+					#endif
+					//Se l'operazione di IO non ha impartito il comando riavvio il processo inserendo come risultato della syscall il registro status del device
+					LDST(&(cur_proc->p_s));
 				}
-			
+
 			break;
-			
+
 			case(SPECPASSUP):
 					//Assegnamento gestore di livello superiore
 				spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
 			break;
-			
+
 			case(GETPID):
-			
-			
+
+
 			break;
 
 			default: /* In tutti gli altri casi errore */
 				PANIC();
 			break;
 	}
+
 
 }
 
