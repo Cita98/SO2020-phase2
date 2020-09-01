@@ -16,7 +16,7 @@ struct list_head* head_rd = &(ready_queue);
 void scheduler()
 {	
 	if(current_proc != NULL){
-		/* Reinserisco il processo corrente (se esiste) nella lista dei processi pronti */
+		/* Reinserisco il processo corrente (se esiste) nella lista dei processi pronti*/
 		insertProcQ(head_rd, current_proc);
 		current_proc = NULL;
 	}
@@ -32,6 +32,11 @@ void scheduler()
 			aging();
 				/* Imposto l'interval timer */
 			setIT_TIMER(TIME_SLICE);
+				/* Time management: se è la prima attivazione del processo inizio a calcolarne il tempo totale di attivazione */
+			if(!curr_proc->wallclock_time) curr_proc->wallclock_time = getTODLO();
+				/* Se un processo si trovava nella lista dei processi pronti deve essere in user mode, se viene caricato esegue il proprio codice non quello di un'eccezione */
+			curr_proc->user_timeNEW = getTODLO();
+		
 				/* Carico lo stato del processo all'interno del processore */
 			LDST(&(current_proc->p_s));
 	}

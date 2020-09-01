@@ -67,6 +67,25 @@ void get_param(unsigned int** param, pcb_t* curr_proc){
 	#endif
 }
 
+//SYSCALL 1
+void get_cpu_time(unsigned int* user, unsigned int* kernel, unsigned int* wallclock){
+	
+	pcb_t* cur_proc = runningProc();
+	
+		//Tempo passato dal processo in user mode
+	if(user != NULL) *user = curr_proc->user_time;
+		//Aggiorno il tempo passato in kernel mode prima di restituirlo in quanto anche questa syscall viene eseguita (ovviamente) in kernel mode
+		/* (alla fine della syscall, nell'handler, il kernel time sarà aggiornato di nuovo, perciò basta leggere il TODLOW prima di restituire il valore del kernel time)*/
+	curr_proc->kernel_time += getTODLO() - curr_proc->kernel_timeNEW;
+		//Tempo passato dal processo in kernel mode
+	if(kernel != NULL) 
+		*kernel = curr_proc->kernel_time;
+		//Tempo passato dalla prima attivazione del processo
+	if(wallclock != NULL) 
+		*wallclock = getTODLO() - curr_proc->wallclock_time;
+	
+}
+
 //SYSCALL 2
 void create_process(state_t *state_p, int priority, void** cpid){
 

@@ -76,5 +76,8 @@
 //Trova indirizzo base device
 #define DEV_ADDR(INT_LINE_NO,DEV_NO) DEV_REGS_BASE + ((INT_LINE_NO - 3) * 0x80 ) + (DEV_NO * 0x10)
 
+//Timing
+#define TOD_LO          *((unsigned int*)0x1000001C)
+
 
 #endif

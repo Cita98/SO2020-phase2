@@ -1,6 +1,14 @@
 #include "handler.h"
 
 void int_handler(){
+		
+	pcb_t* curr_proc = runningProc();
+	
+		//Time management del tempo passato in user mode
+	if(curr_proc->user_timeNEW > 0){
+			curr_proc->user_time += getTODLO() - curr_proc->user_timeNEW;
+			curr_proc->user_timeNEW = 0;
+	}
 
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
 	state_t* old_proc = ((state_t*)INT_OLDAREA);
@@ -48,6 +56,9 @@ void int_handler(){
 	{
 		intTerm();
 	}
+	
+	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
+	if(curr_proc != NULL) curr_proc->user_timeNEW = getTODLO();
 
 }
 
@@ -56,7 +67,17 @@ void int_handler(){
 
 void syscall_handler()
 {
-
+	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
+	
+			//Time management del tempo passato in user mode
+	if(curr_proc->user_timeNEW > 0){
+			curr_proc->user_time += getTODLO() - curr_proc->user_timeNEW;
+			curr_proc->user_timeNEW = 0;
+	}
+	
+	//time management, inizio a contare il tempo passato in kernel mode
+		curr_proc->kernel_timeNEW = getTODLO();
+	
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
 	state_t* old_proc =((state_t*) SYSCALL_OLDAREA);
 
@@ -71,8 +92,6 @@ void syscall_handler()
 	unsigned int* param[3];
 	unsigned int result;
 
-	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
-
 	int SysNumb = get_SysNumb(cur_proc); //Recupero il numero della Syscall in maniera differente per le due architetture
 	get_param(param, cur_proc);
 
@@ -80,9 +99,9 @@ void syscall_handler()
 	switch(SysNumb)
 	{
 			case(GETCPUTIME):
-				//Restituisce il tempo trascorso dalla prima esecuzione del processo
-				//Quanto tempo passato come utente, kernel (tempi di syscall e int), tempo totale trascorso
-
+					//Restituisce il tempo trascorso dalla prima esecuzione del processo
+					//Quanto tempo passato come utente, kernel, tempo totale trascorso
+				get_cpu_time((unsigned int*)*param[0],(unsigned int*)*param[1],(unsigned int*)*param[2]);
 			break;
 
 			case(CREATEPROCESS):
@@ -139,10 +158,17 @@ void syscall_handler()
 				PANIC();
 			break;
 	}
-
+	
+	//Aggiornamento del tempo passato in kernel mode
+	if(curr_proc->kernel_timeNEW > 0){
+					curr_proc->kernel_time += getTODLO() - curr_proc->kernel_timeNEW;
+					curr_proc->kernel_timeNEW = 0;
+				}
+	//Ricomincio a contare il tempo passato in user mode
+	curr_proc->user_timeNEW = getTODLO();
 
 }
 
-void tlb_handler(){return;} //Da implementare nelle fasi successive
+void tlb_handler(){return;} //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
 
-void pgmtrap_handler(){ return; } //Da implementare nelle fasi successive
+void pgmtrap_handler(){ return; } //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
