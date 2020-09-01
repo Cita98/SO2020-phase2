@@ -1,19 +1,24 @@
-#ifndef _TYPES11_H
-#define _TYPES11_H
+#ifndef TYPES_BIKAYA_H_INCLUDED
+#define TYPES_BIKAYA_H_INCLUDED
+
 #ifdef TARGET_UMPS
-#include <umps/types.h>
+#include "umps/libumps.h"
+#include "umps/arch.h"
+#include "umps/types.h"
 #endif
 #ifdef TARGET_UARM
-#define UARM_MACHINE_COMPILING
-#include <uarm/uARMtypes.h>
+#include "uarm/libuarm.h"
+#include "uarm/arch.h"
+#include "uarm/uARMtypes.h"
+#include "uarm/uARMconst.h"
 #endif
-#include "listx.h"
 
 #include "const.h"
+#include "listx.h"
 
 typedef unsigned int memaddr;
 
-// Process Control Block (PCB) data structure
+/* Process Control Block (PCB) data structure */
 typedef struct pcb_t {
     /*process queue fields */
     struct list_head p_next;
@@ -25,18 +30,33 @@ typedef struct pcb_t {
     /* processor state, etc */
     state_t p_s;
 
-    /* dynamic process priority */
+    /* process priority */
     int priority;
-    /* initial process priority */
     int original_priority;
 
     /* key of the semaphore on which the process is eventually blocked */
     int *p_semkey;
+	
+		//Stati delle aree old e new spec_passup
+	state_t *spec_oarea[3];
+	state_t *spec_narea[3];
+		//Controllo per vedere se la system call sia già stata richiamata sul tipo
+	int *spec_assigned[3];
+	
+		//Variabili per il timing
+	int ker_time; 
+	int ker_timeNEW;
+	
+	int user_time;
+	int user_timeNEW;
+	
+	int wallclock_time; //Tempo passato dalla prima esecuzione del processo
+	
 } pcb_t;
 
 
 
-// Semaphore Descriptor (SEMD) data structure
+/* Semaphore Descriptor (SEMD) data structure */
 typedef struct semd_t {
     struct list_head s_next;
 
@@ -55,7 +75,5 @@ typedef struct semdev {
     semd_t terminalR[DEV_PER_INT];
     semd_t terminalT[DEV_PER_INT];
 } semdev;
-
-semdev devSem;
 
 #endif
