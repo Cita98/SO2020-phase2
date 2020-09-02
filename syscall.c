@@ -56,16 +56,16 @@ int get_SysNumb(pcb_t* curr_proc){
 	return(SysNumb);
 }
 
-void get_param(unsigned int** param, pcb_t* curr_proc){
+void get_param(p_u_int *param, pcb_t* curr_proc){
 	#ifdef TARGET_UMPS
-		param[0] = curr_proc->p_s.reg_a1;
-		param[1] = curr_proc->p_s.reg_a2;
-		param[2] = curr_proc->p_s.reg_a3;
+		param[0] = &(curr_proc->p_s.reg_a1);
+		param[1] = &(curr_proc->p_s.reg_a2);
+		param[2] = &(curr_proc->p_s.reg_a3);
 	#endif
 	#ifdef TARGET_UARM
-		param[0] = curr_proc->p_s.a2;
-		param[1] = curr_proc->p_s.a3;
-		param[2] = curr_proc->p_s.a4;
+		param[0] = &(curr_proc->p_s.a2);
+		param[1] = &(curr_proc->p_s.a3);
+		param[2] = &(curr_proc->p_s.a4);
 	#endif
 }
 
@@ -75,21 +75,21 @@ void get_cpu_time(unsigned int* user, unsigned int* kernel, unsigned int* wallcl
 	pcb_t* cur_proc = runningProc();
 
 		//Tempo passato dal processo in user mode
-	if(user != NULL) *user = curr_proc->user_time;
+	if(user != NULL) *user = cur_proc->user_time;
 		//Aggiorno il tempo passato in kernel mode prima di restituirlo in quanto anche questa syscall viene eseguita (ovviamente) in kernel mode
 		/* (alla fine della syscall, nell'handler, il kernel time sarà aggiornato di nuovo, perciò basta leggere il TODLOW prima di restituire il valore del kernel time)*/
-	curr_proc->kernel_time += getTODLO() - curr_proc->kernel_timeNEW;
+	cur_proc->kernel_time += getTODLO() - cur_proc->kernel_timeNEW;
 		//Tempo passato dal processo in kernel mode
 	if(kernel != NULL)
-		*kernel = curr_proc->kernel_time;
+		*kernel = cur_proc->kernel_time;
 		//Tempo passato dalla prima attivazione del processo
 	if(wallclock != NULL)
-		*wallclock = getTODLO() - curr_proc->wallclock_time;
+		*wallclock = getTODLO() - cur_proc->wallclock_time;
 
 }
 
 //SYSCALL 2
-void create_process(state_t *state_p, int priority, void** cpid){
+int create_process(state_t *state_p, int priority, void** cpid){
 
 	pcb_t * new_proc = allocPcb();
 
@@ -97,9 +97,11 @@ void create_process(state_t *state_p, int priority, void** cpid){
 	else{
 			//Setto la priorità e lo stato del nuovo processo
 		new_proc->original_priority = priority;
-		cp_state(state_p, *(new_proc->p_s));
+		cp_state(state_p, &(new_proc->p_s));
 
 		pcb_t* cur_proc = runningProc();
+
+		struct list_head* head_rd = getHeadRd();
 
 			//Aggiungo il processo come figlio del corrente e lo iserisco nella lista dei processi pronti
 		insertChild(cur_proc, new_proc);
@@ -137,7 +139,10 @@ void verhogen(int* semaddr){
 	if(*semaddr <= 0) proc = removeBlocked(semaddr);
 
 		//se ho svegliato un processo lo inserisco nella nella ready queue
-	if(proc!=NULL) insertProcQ(head_rd, proc);
+	if(proc!=NULL){
+		struct list_head* head_rd = getHeadRd();
+		insertProcQ(head_rd, proc);
+	}
 
 }
 
@@ -151,7 +156,7 @@ void passeren(int* semaddr){
 	if(*semaddr < 0){
 		pcb_t* cur_proc = runningProc();
 			//Blocco il processo al semaforo
-		insertBlocked(semaddr, proc);
+		insertBlocked(semaddr, cur_proc);
 
 //TEMPO DELLA GET CPU TIME DA GESTIRE
 
@@ -170,6 +175,7 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	int line; //Linea del device
 	unsigned int* reg_status;
 	unsigned int* reg_command;
+	int result;
 
 	fintTYPEandLINE(&type, &line, devRegister);
 
@@ -209,7 +215,7 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		result = DEV_S_READY;
 	}else
 	{
-		result = *reg_status;
+		result = *(int*)reg_status;
 	}
 
 	return(result);
@@ -270,7 +276,7 @@ void blockProcAtDev(int type, int line, int subdevice){
 	}
 
 //SYSCALL 7
-void spec_passup(int type, state_t* old, state_t* new){
+int spec_passup(int type, state_t* old, state_t* new){
 
 	pcb_t* cur_proc = runningProc();
 

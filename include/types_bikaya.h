@@ -36,22 +36,22 @@ typedef struct pcb_t {
 
     /* key of the semaphore on which the process is eventually blocked */
     int *p_semkey;
-	
+
 		//Stati delle aree old e new spec_passup
 	state_t *spec_oarea[3];
 	state_t *spec_narea[3];
 		//Controllo per vedere se la system call sia già stata richiamata sul tipo
-	int *spec_assigned[3];
-	
+	int spec_assigned[3];
+
 		//Variabili per il timing
-	int ker_time; 
-	int ker_timeNEW;
-	
+	int kernel_time;
+	int kernel_timeNEW;
+
 	int user_time;
 	int user_timeNEW;
-	
+
 	int wallclock_time; //Tempo passato dalla prima esecuzione del processo
-	
+
 } pcb_t;
 
 

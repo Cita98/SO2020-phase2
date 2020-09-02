@@ -58,4 +58,6 @@
 // COSTATI PER LA GESTIONE DEI DEVICE ESTERNI
 #define DEV_REGS_SIZE 0x10
 
+typedef unsigned int * p_u_int;
+
 #endif

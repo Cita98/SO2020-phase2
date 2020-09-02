@@ -1,9 +1,9 @@
 #include "handler.h"
 
 void int_handler(){
-		
+
 	pcb_t* curr_proc = runningProc();
-	
+
 		//Time management del tempo passato in user mode
 	if(curr_proc->user_timeNEW > 0){
 			curr_proc->user_time += getTODLO() - curr_proc->user_timeNEW;
@@ -56,7 +56,7 @@ void int_handler(){
 	{
 		intTerm();
 	}
-	
+
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
 	if(curr_proc != NULL) curr_proc->user_timeNEW = getTODLO();
 
@@ -68,16 +68,16 @@ void int_handler(){
 void syscall_handler()
 {
 	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
-	
+
 			//Time management del tempo passato in user mode
-	if(curr_proc->user_timeNEW > 0){
-			curr_proc->user_time += getTODLO() - curr_proc->user_timeNEW;
-			curr_proc->user_timeNEW = 0;
+	if(cur_proc->user_timeNEW > 0){
+			cur_proc->user_time += getTODLO() - cur_proc->user_timeNEW;
+			cur_proc->user_timeNEW = 0;
 	}
-	
+
 	//time management, inizio a contare il tempo passato in kernel mode
-		curr_proc->kernel_timeNEW = getTODLO();
-	
+		cur_proc->kernel_timeNEW = getTODLO();
+
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
 	state_t* old_proc =((state_t*) SYSCALL_OLDAREA);
 
@@ -89,7 +89,7 @@ void syscall_handler()
 	/* Copio lo stato del processo interrotto nel processo corrente dello scheduler*/
 	updateCurrentProc(old_proc);
 
-	unsigned int* param[3];
+	p_u_int param[3];
 	unsigned int result;
 
 	int SysNumb = get_SysNumb(cur_proc); //Recupero il numero della Syscall in maniera differente per le due architetture
@@ -101,7 +101,7 @@ void syscall_handler()
 			case(GETCPUTIME):
 					//Restituisce il tempo trascorso dalla prima esecuzione del processo
 					//Quanto tempo passato come utente, kernel, tempo totale trascorso
-				get_cpu_time((unsigned int*)*param[0],(unsigned int*)*param[1],(unsigned int*)*param[2]);
+				get_cpu_time((unsigned int*)param[0],(unsigned int*)param[1],(unsigned int*)param[2]);
 			break;
 
 			case(CREATEPROCESS):
@@ -119,21 +119,21 @@ void syscall_handler()
 
 			case(VERHOGEN):
 					//Operazione di rilascio sul semaforo
-				verhogen((int*)*param[0]);
+				verhogen((int*)param[0]);
 			break;
 
 			case(PASSEREN):
 					//Operazione di richiesta di un semaforo
-				passeren((int*)*param[0]);
+				passeren((int*)param[0]);
 			break;
 
 			case(WAITIO):
 
-				result = do_io(*param[0],(unsigned int*)*param[1],(int)*param[2]);
+				result = do_io(*param[0],(unsigned int*)param[1],(int)*param[2]);
 				if(result != DEV_S_READY)
 				{
 					#ifdef TARGET_UMPS
-						cur_proc->p_s.reg_vo = result;
+						cur_proc->p_s.reg_v0 = result;
 					#endif
 					#ifdef TARGET_UARM
 						cur_proc->p_s.a1 = result;
@@ -146,7 +146,7 @@ void syscall_handler()
 
 			case(SPECPASSUP):
 					//Assegnamento gestore di livello superiore
-				spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
+				spec_passup((int)*param[0], (state_t*)param[1], (state_t*)param[2]);
 			break;
 
 			case(GETPID):
@@ -158,14 +158,14 @@ void syscall_handler()
 				PANIC();
 			break;
 	}
-	
+
 	//Aggiornamento del tempo passato in kernel mode
-	if(curr_proc->kernel_timeNEW > 0){
-					curr_proc->kernel_time += getTODLO() - curr_proc->kernel_timeNEW;
-					curr_proc->kernel_timeNEW = 0;
+	if(cur_proc->kernel_timeNEW > 0){
+					cur_proc->kernel_time += getTODLO() - cur_proc->kernel_timeNEW;
+					cur_proc->kernel_timeNEW = 0;
 				}
 	//Ricomincio a contare il tempo passato in user mode
-	curr_proc->user_timeNEW = getTODLO();
+	cur_proc->user_timeNEW = getTODLO();
 
 }
 

@@ -15,7 +15,14 @@ void init_syscall();
 int get_SysNumb(pcb_t* curr_proc);
 
 //Riconosco i 3 parametri di input
-void get_param(unsigned int** param, pcb_t* curr_proc);
+void get_param(p_u_int *param, pcb_t* curr_proc);
+
+
+//SYS 1
+void get_cpu_time(unsigned int* user, unsigned int* kernel, unsigned int* wallclock);
+
+//SYS 2
+int create_process(state_t *state_p, int priority, void** cpid);
 
 //SYS 3
 void terminate_process(pcb_t* curr_proc);
@@ -34,7 +41,7 @@ void fintTYPEandLINE(int* ptype, int* pline, unsigned int* preg );
 void blockProcAtDev(int type, int line, int subdevice);
 
 //SYSCALL 7
-void spec_passup(int type, state_t* old, state_t* new);
+int spec_passup(int type, state_t* old, state_t* new);
 
 
 #endif
