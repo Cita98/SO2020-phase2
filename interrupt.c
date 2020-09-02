@@ -43,13 +43,13 @@ void init_interrupt(){ //Inizializzazione new area interrupt
 //Ritorna vero se il device $i nella linea interrupt $intLine sta richiedendo un interrupt
 int checkDevLine(int intLine, int i)
 {
-	#ifdef TARGET_UARM
+	// #ifdef TARGET_UARM
 	return(CDEV_BITMAP_ADDR(intLine)>>i)&(0x00000001);
-	#endif
-
-	#ifdef TARGET_UMPS
-	return(INTR_CURRENT_BITMAP(intLine)>>i)&(0x00000001);
-	#endif
+	// #endif
+	//
+	// #ifdef TARGET_UMPS
+	// return(INTR_CURRENT_BITMAP(intLine)>>i)&(0x00000001);
+	// #endif
 }
 
 //Setta il risultato di una operazione IO nel primo processo bloccato al semaforo $key
@@ -61,7 +61,7 @@ int setIOresult(int *key, unsigned int res)
 	if(temp != NULL)
 	{
 		#ifdef TARGET_UMPS
-			temp->p_s.reg_vo = res;
+			temp->p_s.reg_v0 = res;
 		#endif
 		#ifdef TARGET_UARM
 			temp->p_s.a1 = res;
