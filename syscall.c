@@ -78,13 +78,13 @@ void get_cpu_time(unsigned int* user, unsigned int* kernel, unsigned int* wallcl
 	if(user != NULL) *user = cur_proc->user_time;
 		//Aggiorno il tempo passato in kernel mode prima di restituirlo in quanto anche questa syscall viene eseguita (ovviamente) in kernel mode
 		/* (alla fine della syscall, nell'handler, il kernel time sarà aggiornato di nuovo, perciò basta leggere il TODLOW prima di restituire il valore del kernel time)*/
-	cur_proc->kernel_time += getTODLO() - cur_proc->kernel_timeNEW;
+	cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
 		//Tempo passato dal processo in kernel mode
 	if(kernel != NULL)
 		*kernel = cur_proc->kernel_time;
 		//Tempo passato dalla prima attivazione del processo
 	if(wallclock != NULL)
-		*wallclock = getTODLO() - cur_proc->wallclock_time;
+		*wallclock = getTOD_LO() - cur_proc->wallclock_time;
 
 }
 
@@ -118,14 +118,81 @@ int create_process(state_t *state_p, int priority, void** cpid){
 
 
 //SYSCALL 3 PROBABILMENTE DA CAMBIARE, LEGGI SPECIFICHE NUOVE
-void terminate_process(pcb_t* curr_proc) 	// Rimuovo il processo da terminare e tutti i suoi figli dalla ready_queue
-{
-	outChildBlocked(curr_proc); // Funzione definita in asl.c, scelta progettuale spiegata nella documentazione
-	// NOTA: Il processo terminato non si troverà sicuramente nella ready_queue poichè era il processo corrente
-	// Libero il processo corrente rimettendolo nella lista dei pcb liberi
-	freePcb(curr_proc);
 
-	return;
+int terminate_process(void** pid) 	// Rimuovo il processo da terminare e tutti i suoi figli dalla ready_queue
+{	
+	/*quando un processo viene terminato:
+			-il processo da eliminare va tolto dalla ready_queue_h
+			-la lista dei processi liberi (pcbFree) riceve un nuovo pcb_t allocabile(si usa freePcb)
+			-va tolto dalle code dei semafori in cui il processo potrebbe essere bloccato(se non è il curr_proc)
+		Inoltre se il processo terminato è il curr_proc, allora va tolto dal processore il processo corrente
+		e richiamato lo scheduler*/
+	pcb_t* p_daTerminare;
+	pcb_t* cur_proc = runningProc();
+	
+	if(pid == NULL || pid == 0)	//Il processo da terminare è il processo corrente
+		p_daTerminare = cur_proc;
+	else{
+		
+		p_daTerminare = *((pcb_t **)pid);
+			//Controllo che appartenga alla progenie del processo corrente, se non è così termino con errore, vale anche se non ha un padre
+		if(!isChildOf(pcb_t* cur_proc, pcb_t* p_daTerminare))
+			return(-1);
+	}
+	
+	//Termino i processi figli
+	 //Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi 
+    if( !emptyChild(p_daTerminare) ){
+        	//Scorro su ogni figlio
+        pcb_t* figlio = removeChild(p_daTerminare);
+
+        while(figlio != NULL){
+            //Termino i processi figli
+            TerminateProcess(&figlio);        
+        }
+    }
+	else //Se il pcb non ha figli lo rimuovo dalla lista del padre
+        outChild(tempPcb);
+
+	//Gestisco la terminazione del processo corrente, non può essere bloccato ad un semaforo nè presente nella ready queue
+	if(p_daTerminare == cur_proc){
+		
+		setNULL(); //Setto il processo corrente a NULL
+		scheduler(); //Richiamo lo scheduler per passare al prossimo processo
+	}
+	else{
+			//Controllo se il processo da terminare sia bloccato ad un semaforo
+		if(p_daTerminare->p_semkey!=NULL){
+				//Rimuovo il processo dal semaforo
+			outBlocked(p_daTerminare);
+				//Rilascio il semaforo
+			*(p_daTerminare->p_semkey) +=1;
+		}
+		else{
+				//Recupero la lista dei processi pronti
+			struct list_head* head_rd = getHeadRd();
+				//Rimuovo il processo dalla lista dei processi pronti
+			outProcQ(head_rd, p_daTerminare);
+		}
+	}
+	
+	    //Libero il processo
+    freePcb(p_daTerminare);
+		//Tutto è andato a buon fine
+    return 0; 
+	
+	/* Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi 
+	if (!list_empty(&(p_daTerminare->p_child))){
+		//Inizializzo l'iteratore
+		struct list_head* childIt = &(p_daTerminare->p_child);
+		// scorro su ogni figlio
+		list_for_each(childIt, &(p_daTerminare->p_child))
+		{
+			pcb_t** term_Pcb = &container_of(childIt, pcb_t, p_sib);
+			// termino i processi figli
+			terminate_process(term_Pcb);
+		}
+	} */
 }
 
 

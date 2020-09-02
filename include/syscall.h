@@ -25,7 +25,7 @@ void get_cpu_time(unsigned int* user, unsigned int* kernel, unsigned int* wallcl
 int create_process(state_t *state_p, int priority, void** cpid);
 
 //SYS 3
-void terminate_process(pcb_t* curr_proc);
+int terminate_process(void** pid);
 
 //SYS 4
 void verhogen(int *semaddr);

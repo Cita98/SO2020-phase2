@@ -6,7 +6,7 @@ void int_handler(){
 
 		//Time management del tempo passato in user mode
 	if(curr_proc->user_timeNEW > 0){
-			curr_proc->user_time += getTODLO() - curr_proc->user_timeNEW;
+			curr_proc->user_time += getTOD_LO() - curr_proc->user_timeNEW;
 			curr_proc->user_timeNEW = 0;
 	}
 
@@ -58,7 +58,7 @@ void int_handler(){
 	}
 
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
-	if(curr_proc != NULL) curr_proc->user_timeNEW = getTODLO();
+	if(curr_proc != NULL) curr_proc->user_timeNEW = getTOD_LO();
 
 }
 
@@ -71,12 +71,12 @@ void syscall_handler()
 
 			//Time management del tempo passato in user mode
 	if(cur_proc->user_timeNEW > 0){
-			cur_proc->user_time += getTODLO() - cur_proc->user_timeNEW;
+			cur_proc->user_time += getTOD_LO() - cur_proc->user_timeNEW;
 			cur_proc->user_timeNEW = 0;
 	}
 
 	//time management, inizio a contare il tempo passato in kernel mode
-		cur_proc->kernel_timeNEW = getTODLO();
+		cur_proc->kernel_timeNEW = getTOD_LO();
 
 	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
 	state_t* old_proc =((state_t*) SYSCALL_OLDAREA);
@@ -161,11 +161,13 @@ void syscall_handler()
 
 	//Aggiornamento del tempo passato in kernel mode
 	if(cur_proc->kernel_timeNEW > 0){
-					cur_proc->kernel_time += getTODLO() - cur_proc->kernel_timeNEW;
+					cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
 					cur_proc->kernel_timeNEW = 0;
 				}
 	//Ricomincio a contare il tempo passato in user mode
-	cur_proc->user_timeNEW = getTODLO();
+	cur_proc->user_timeNEW = getTOD_LO();
+	//Ricarico lo stato del processo
+	LDST(&cur_proc->p_s);
 
 }
 

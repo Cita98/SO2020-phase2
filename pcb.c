@@ -247,6 +247,19 @@ pcb_t* outChild(pcb_t *p)
         }
 }
 
+//--------------- FUNZIONE AGGIUNTA IN SEGUITO ------------
+//Ritorna TRUE se il secondo processo dato come paramentro in input appartiene alla progenie del primo, FALSE altrimenti
+
+int isChildOf(pcb_t* parent, pcb_t* sib){
+	
+	if(sib->p_parent == parent) 
+		return TRUE;
+	else if(sib->p_parent == NULL)
+		return FALSE;
+	else	//Ricorre sul padre del processo iniziale da controllare
+		return(isChildOf(parent, sib->p_parent));
+}
+
 
 
 

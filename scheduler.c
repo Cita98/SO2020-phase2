@@ -38,9 +38,9 @@ void scheduler()
 				/* Imposto l'interval timer */
 			setIT_TIMER(TIME_SLICE);
 				/* Time management: se è la prima attivazione del processo inizio a calcolarne il tempo totale di attivazione */
-			if(!current_proc->wallclock_time) current_proc->wallclock_time = getTODLO();
+			if(!current_proc->wallclock_time) current_proc->wallclock_time = getTOD_LO();
 				/* Se un processo si trovava nella lista dei processi pronti deve essere in user mode, se viene caricato esegue il proprio codice non quello di un'eccezione */
-			current_proc->user_timeNEW = getTODLO();
+			current_proc->user_timeNEW = getTOD_LO();
 
 				/* Carico lo stato del processo all'interno del processore */
 			LDST(&(current_proc->p_s));

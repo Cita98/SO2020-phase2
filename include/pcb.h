@@ -26,4 +26,7 @@ void insertChild(pcb_t *prnt, pcb_t *p);
 pcb_t *removeChild(pcb_t *p);
 pcb_t *outChild(pcb_t *p);
 
+//Aggiunte in seguito
+int isChildOf(pcb_t* parent, pcb_t* sib);
+
 #endif

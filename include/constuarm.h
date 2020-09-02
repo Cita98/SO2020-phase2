@@ -25,5 +25,6 @@
 
 //Gestione timing
 #define TOD_LO	*((unsigned int*)0x000002E0)
+#define getTOD_LO() getTODLO()
 
 #endif
