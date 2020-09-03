@@ -147,7 +147,7 @@ int terminate_process(void** pid) 	// Rimuovo il processo da terminare e tutti i
         pcb_t* figlio = removeChild(p_daTerminare);
 
         while(figlio != NULL){
-            //Termino i processi figli
+            //Termino i processi figli ricorrendo su di essi
             TerminateProcess(&figlio);        
         }
     }
