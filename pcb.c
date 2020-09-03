@@ -247,7 +247,7 @@ pcb_t* outChild(pcb_t *p)
         }
 }
 
-//--------------- FUNZIONE AGGIUNTA IN SEGUITO ------------
+//--------------- FUNZIONI AGGIUNTA IN SEGUITO ------------
 //Ritorna TRUE se il secondo processo dato come paramentro in input appartiene alla progenie del primo, FALSE altrimenti
 
 int isChildOf(pcb_t* parent, pcb_t* sib){
@@ -260,6 +260,19 @@ int isChildOf(pcb_t* parent, pcb_t* sib){
 		return(isChildOf(parent, sib->p_parent));
 }
 
+//Ritorna il puntatore al primo figlio del processo
+pcb_t* returnChild(pcb_t *p)
+{
+	pcb_t* first_PcbChild = NULL; /* Variabile che conterrà il puntatore al primo figlio */
+	/*Controllo se p ha figli.*/    
+    if (!emptyChild(p)){
+			/* estraggo l'indirizzo della testa della lista dei figli */
+        struct list_head* head_Child = list_next(&(p->p_child));
+        	/* estraggo l'indirizzo del contenitore del primo concatenatore */
+        first_PcbChild = container_of(head_Child, pcb_t, p_sib); 		
+    }
+	return first_PcbChild; /* restituisco NULL o il puntatore al primo figlio*/
+}
 
 
 

@@ -111,7 +111,7 @@ void syscall_handler()
 
 			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
-				terminate_process(cur_proc);
+				terminate_process((void*)param[0]);
 					/* Richiamo lo scheduler per passare al prossimo processo */
 				setNULL();
 				scheduler();

@@ -81,12 +81,10 @@ void intDisk()
 			dtpreg_t *dev = (dtpreg_t*)DEV_ADDR(INT_DISK, i);
 
 			//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-			if(setIOresult(&sem_dev.disk[i],dev->status))
-				PANIC();
+			if(!setIOresult(&sem_dev.disk[i],dev->status))
+				verhogen(&sem_dev.disk[i]);
 
 			dev->command = DEV_C_ACK;
-
-			verhogen(&sem_dev.disk[i]);
 		}
 	}
 }
@@ -101,12 +99,10 @@ void intTape()
 			dtpreg_t *dev = (dtpreg_t*)DEV_ADDR(INT_TAPE, i);
 
 			//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-			if(setIOresult(&sem_dev.tape[i],dev->status))
-				PANIC();
+			if(!setIOresult(&sem_dev.tape[i],dev->status))
+				verhogen(&sem_dev.tape[i]);
 
 			dev->command = DEV_C_ACK;
-
-			verhogen(&sem_dev.tape[i]);
 		}
 	}
 }
@@ -121,12 +117,10 @@ void intNet()
 			dtpreg_t *dev = (dtpreg_t*)DEV_ADDR(INT_UNUSED, i);
 
 			//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-			if(setIOresult(&sem_dev.network[i],dev->status))
-				PANIC();
+			if(!setIOresult(&sem_dev.network[i],dev->status))
+				verhogen(&sem_dev.network[i]);
 
 			dev->command = DEV_C_ACK;
-
-			verhogen(&sem_dev.network[i]);
 		}
 	}
 }
@@ -141,12 +135,10 @@ void intPrint()
 			dtpreg_t *dev = (dtpreg_t*)DEV_ADDR(INT_PRINTER, i);
 
 			//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-			if(setIOresult(&sem_dev.printer[i],dev->status))
-				PANIC();
+			if(!setIOresult(&sem_dev.printer[i],dev->status))
+				verhogen(&sem_dev.printer[i]);
 
 			dev->command = DEV_C_ACK;
-
-			verhogen(&sem_dev.printer[i]);
 		}
 	}
 }
@@ -165,23 +157,19 @@ void intTerm()
 			if(dev->recv_status != DEV_S_READY)
 			{
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-				if(setIOresult(&sem_dev.terminalR[i],dev->recv_status))
-					PANIC();
+				if(!setIOresult(&sem_dev.terminalR[i],dev->recv_status))
+					verhogen(&sem_dev.terminalR[i]);
 
 				dev->recv_command = DEV_C_ACK;
-
-				verhogen(&sem_dev.terminalR[i]);
 			}
 
 			if(dev->transm_status != DEV_S_READY)
 			{
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
-				if(setIOresult(&sem_dev.terminalT[i],dev->transm_status))
-					PANIC();
+				if(!setIOresult(&sem_dev.terminalT[i],dev->transm_status))
+					verhogen(&sem_dev.terminalT[i]);
 
 				dev->transm_command = DEV_C_ACK;
-
-				verhogen(&sem_dev.terminalT[i]);
 			}
 		}
 	}

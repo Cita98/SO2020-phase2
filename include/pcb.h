@@ -28,5 +28,6 @@ pcb_t *outChild(pcb_t *p);
 
 //Aggiunte in seguito
 int isChildOf(pcb_t* parent, pcb_t* sib);
+pcb_t* returnChild(pcb_t *p);
 
 #endif
