@@ -60,4 +60,13 @@
 
 typedef unsigned int * p_u_int;
 
+// funzione per debug uarm
+#ifdef TARGET_UARM
+#define mStr(str) tprint(str"\n");
+#endif
+
+#ifdef TARGET_UMPS
+#define mStr(str)
+#endif
+
 #endif

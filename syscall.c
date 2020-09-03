@@ -38,7 +38,8 @@ void init_syscall(){ //Inizializzazione syscall new area
 
 	#endif
 
-
+	//debug
+	mStr("init syscall... OK");
 }
 
 int get_SysNumb(pcb_t* curr_proc){
@@ -108,7 +109,10 @@ int create_process(state_t *state_p, int priority, void** cpid){
 		insertProcQ(head_rd, new_proc);
 
 			//cpid contiene l'identificatore del processo figlio
-		if(cpid!=NULL) *((pcb_t **)cpid) = new_proc;
+		if(cpid!=NULL) *cpid = (void*)new_proc;
+		//*((pcb_t **)cpid) = new_proc;
+
+		//(pcb_t *)*cpid = new_proc;
 
 			//Tutto è andato a buon fine, ritorno 0
 		return(0);
@@ -147,11 +151,11 @@ int terminate_process(void* pid) 	// Rimuovo il processo da terminare e tutti i 
         pcb_t* child = returnChild(p_daTerminare);
 
         while(child != NULL){
-            
+
 			//Termino i processi figli
-            TerminateProcess(child);
+            terminate_process(child);
 			//Rimuovo il primo figlio e scorro la lista dei figli prendendo il prossimo
-			removeChild(p_daTerminare);
+			//removeChild(p_daTerminare);
 			child = returnChild(p_daTerminare);
         }
     }
@@ -161,6 +165,7 @@ int terminate_process(void* pid) 	// Rimuovo il processo da terminare e tutti i 
 	//Gestisco la terminazione del processo corrente, non può essere bloccato ad un semaforo nè presente nella ready queue
 	if(p_daTerminare == cur_proc){
 
+		freePcb(p_daTerminare);
 		setNULL(); //Setto il processo corrente a NULL
 		scheduler(); //Richiamo lo scheduler per passare al prossimo processo
 	}
@@ -234,6 +239,7 @@ void passeren(int* semaddr){
 		cur_proc = NULL;
 		setNULL();
 			//Richiamo lo scheduler per passare alla gestione di un altro processo
+
 		scheduler();
 	}
 }
@@ -247,6 +253,9 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	unsigned int* reg_status;
 	unsigned int* reg_command;
 	int result;
+
+	//debug
+	//mStr("Entering do_io");
 
 	fintTYPEandLINE(&type, &line, devRegister);
 
@@ -267,6 +276,10 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		reg_command = &(reg->dtp.command);
 	}
 
+	//debug
+	// termreg_t* tmpReg = (termreg_t*)devRegister;
+	// reg_status = &(tmpReg->transm_status);
+
 	// switch (*reg_status) {
 	// 	case DEV_NOT_INSTALLED:
 	// 		return(*reg_status);
@@ -276,8 +289,10 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	// 	break;
 	// }
 
-	if (*reg_status == DEV_S_READY)
+	/*if (*reg_status == DEV_S_READY)
 	{
+		//debug
+		mStr("writing command");
 		//Eseguo il comando
 		*reg_command = command;
 		//Blocco il processo
@@ -286,8 +301,15 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		result = DEV_S_READY;
 	}else
 	{
+		//debug
+		mStr("error");
 		result = *(int*)reg_status;
-	}
+	}*/
+
+	*reg_command = command;
+	//Blocco il processo
+	blockProcAtDev(type,line,subdevice);
+	result = DEV_S_READY;
 
 	return(result);
 }

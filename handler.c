@@ -18,13 +18,18 @@ void int_handler(){
 		old_proc->prog_counter -= 4;
 	#endif
 
+	mStr("sopra");
+
 	/* Copio lo stato del processo interrotto nel processo corrente */
 	updateCurrentProc(old_proc);
+
+	mStr("sotto");
 
 	unsigned int cause = getCAUSE();
 
 	if(CAUSE_IP_GET(cause,INT_TIMER))
 	{
+		mStr("Time");
 		//Ack dell'interrupt, riavvio il timer
 		setIT_TIMER(TIME_SLICE);
 		// Richiamo lo scheduler per far partire il prossimo processo
@@ -34,28 +39,35 @@ void int_handler(){
 
 	if(CAUSE_IP_GET(cause,INT_DISK))
 	{
+		mStr("Disk");
 		intDisk();
 	}
 
 	if(CAUSE_IP_GET(cause,INT_TAPE))
 	{
+		mStr("Tape");
 		intTape();
 	}
 
 	if(CAUSE_IP_GET(cause,INT_UNUSED))
 	{
+		mStr("Net");
 		intNet();
 	}
 
 	if(CAUSE_IP_GET(cause,INT_PRINTER))
 	{
+		mStr("Print");
 		intPrint();
 	}
 
 	if(CAUSE_IP_GET(cause,INT_TERMINAL))
 	{
+		mStr("Term");
 		intTerm();
 	}
+
+
 
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
 	if(curr_proc != NULL) curr_proc->user_timeNEW = getTOD_LO();
@@ -95,41 +107,45 @@ void syscall_handler()
 	int SysNumb = get_SysNumb(cur_proc); //Recupero il numero della Syscall in maniera differente per le due architetture
 	get_param(param, cur_proc);
 
-
+	//debug
+	int *tmp;
+	int itr;
 	switch(SysNumb)
 	{
 			case(GETCPUTIME):
 					//Restituisce il tempo trascorso dalla prima esecuzione del processo
 					//Quanto tempo passato come utente, kernel, tempo totale trascorso
-				get_cpu_time((unsigned int*)param[0],(unsigned int*)param[1],(unsigned int*)param[2]);
+				get_cpu_time((unsigned int*)*param[0],(unsigned int*)*param[1],(unsigned int*)*param[2]);
 			break;
 
 			case(CREATEPROCESS):
 
+				create_process((state_t *)*param[0], (int) *param[1], (void**) *param[2]);
 
 			break;
 
 			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
-				terminate_process((void*)param[0]);
+				terminate_process((void*)*param[0]);
 					/* Richiamo lo scheduler per passare al prossimo processo */
-				setNULL();
-				scheduler();
+				//setNULL();
+				//scheduler();
 			break;
 
 			case(VERHOGEN):
 					//Operazione di rilascio sul semaforo
-				verhogen((int*)param[0]);
+				verhogen((int*)*param[0]);
+
 			break;
 
 			case(PASSEREN):
 					//Operazione di richiesta di un semaforo
-				passeren((int*)param[0]);
+				passeren((int*)*param[0]);
 			break;
 
 			case(WAITIO):
 
-				result = do_io(*param[0],(unsigned int*)param[1],(int)*param[2]);
+				result = do_io((unsigned int)*param[0],(unsigned int*)*param[1],(int)*param[2]);
 				if(result != DEV_S_READY)
 				{
 					#ifdef TARGET_UMPS
@@ -139,14 +155,14 @@ void syscall_handler()
 						cur_proc->p_s.a1 = result;
 					#endif
 					//Se l'operazione di IO non ha impartito il comando riavvio il processo inserendo come risultato della syscall il registro status del device
-					LDST(&(cur_proc->p_s));
+					//LDST(&(cur_proc->p_s));
 				}
 
 			break;
 
 			case(SPECPASSUP):
 					//Assegnamento gestore di livello superiore
-				spec_passup((int)*param[0], (state_t*)param[1], (state_t*)param[2]);
+				spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
 			break;
 
 			case(GETPID):

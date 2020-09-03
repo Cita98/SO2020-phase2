@@ -28,5 +28,8 @@ void init_pgmtrap(){
 		pgmtrap_na->cpsr = STATUS_DISABLE_INT(pgmtrap_na->cpsr);
 	
 	#endif
+        
+    //debug
+	mStr("init pgmtrap... OK");
 	
 }

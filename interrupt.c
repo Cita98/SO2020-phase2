@@ -1,5 +1,7 @@
 #include "interrupt.h"
 
+
+
 void init_interrupt(){ //Inizializzazione new area interrupt
 
 	state_t* int_na = ((state_t *)INT_NEWAREA);
@@ -38,6 +40,10 @@ void init_interrupt(){ //Inizializzazione new area interrupt
 
 
 	#endif
+
+	//debug
+	mStr("init interrupt... OK");
+
 }
 
 //Ritorna vero se il device $i nella linea interrupt $intLine sta richiedendo un interrupt
@@ -152,7 +158,7 @@ void intTerm()
 			//Il device i sulla linea INT_DISK ha alzato un interrupt
 			termreg_t *dev = (termreg_t*)DEV_ADDR(INT_TERMINAL, i);
 
-
+			mStr("debug prova");
 
 			if(dev->recv_status != DEV_S_READY)
 			{

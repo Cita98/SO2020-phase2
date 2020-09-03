@@ -161,6 +161,7 @@ void print(char *msg) {
 
     SYSCALL(PASSEREN, (int)&term_mut, 0, 0); /* get term_mut lock */
 
+
     while (*s != '\0') {
         /* Put "transmit char" command+char in term0 register (3rd word). This
                  actually starts the operation on the device! */
@@ -180,6 +181,8 @@ void print(char *msg) {
         s++;
     }
 
+    mStr("do_io ok");
+
     SYSCALL(VERHOGEN, (int)&term_mut, 0, 0); /* release term_mut */
 }
 
@@ -195,6 +198,7 @@ void test() {
         print("error: p1 v(testsem) with no effects\n");
         PANIC();
     }
+
 
     print("p1 v(testsem)\n");
 

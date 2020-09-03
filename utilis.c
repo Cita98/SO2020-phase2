@@ -61,7 +61,7 @@ void init_ProcState(pcb_t* new_Pcb){
 	//Probabilmente da abilitare l'interval timer
 	#ifdef TARGET_UARM
 		new_Pcb->p_s.cpsr |= STATUS_SYS_MODE; //Kernel mode ON
-		new_Pcb->p_s.cpsr = STATUS_DISABLE_INT(new_Pcb->p_s.cpsr); //Interrupt disabilitati - per questa fase serve solo il timer
+		new_Pcb->p_s.cpsr = STATUS_ENABLE_INT(new_Pcb->p_s.cpsr); //Interrupt disabilitati - per questa fase serve solo il timer
 		new_Pcb->p_s.CP15_Control = CP15_DISABLE_VM(new_Pcb->p_s.CP15_Control); //Virtual memory OFF
 		new_Pcb->p_s.cpsr = STATUS_ENABLE_TIMER(new_Pcb->p_s.cpsr); //Interval Timer abilitato
 	#endif

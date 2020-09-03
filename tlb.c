@@ -29,4 +29,6 @@ void init_tlb(){
 	
 	#endif
 	
+    //debug
+	mStr("init tlb... OK");
 }

@@ -25,10 +25,21 @@ void scheduler()
 		insertProcQ(head_rd, current_proc);
 		current_proc = NULL;
 	}
+	if(current_proc == NULL && emptyProcQ(head_rd))
+	{ //Se la ready queue è vuota metto il sistema in attesa
+		setIT_TIMER(TIME_SLICE);
 
-	if(current_proc == NULL && emptyProcQ(head_rd)){HALT();} //Se la ready queue è vuota metto il sistema in attesa
+		#ifdef TARGET_UARM
+      //Abilito tutti gli interrupt e vado in kernel mode
+      setSTATUS(getSTATUS() | STATUS_SYS_MODE);
+      setSTATUS(STATUS_ALL_INT_ENABLE(getSTATUS()));
+      setSTATUS(STATUS_ENABLE_TIMER(getSTATUS()));
+			setSTATUS(STATUS_ENABLE_INT(getSTATUS()));
+    #endif
+		
+		WAIT();
+	}
 	else{//Altrimenti
-
 				/* Prendo il processo con priorità maggiore */
 			current_proc = removeProcQ(head_rd);
 				/* Riporto la priorità del processo a quella originaria */
@@ -41,6 +52,9 @@ void scheduler()
 			if(!current_proc->wallclock_time) current_proc->wallclock_time = getTOD_LO();
 				/* Se un processo si trovava nella lista dei processi pronti deve essere in user mode, se viene caricato esegue il proprio codice non quello di un'eccezione */
 			current_proc->user_timeNEW = getTOD_LO();
+
+			//debug
+			mStr("Loading state OK");
 
 				/* Carico lo stato del processo all'interno del processore */
 			LDST(&(current_proc->p_s));
@@ -99,5 +113,6 @@ void initScheduler(){ //Inizializzazione della ready queue
 
 void updateCurrentProc(state_t* src_state) //Copia lo stato di un processo nel processo corrente
 {
+	//mStr("ok");
 	cp_state(src_state, &(current_proc->p_s));
 }
