@@ -6,7 +6,6 @@
 #include "types_bikaya.h"
 #include "interrupt.h"
 
-
 void init_syscall(){ //Inizializzazione syscall new area
 
 	state_t* sys_na = ((state_t *)SYSCALL_NEWAREA);
@@ -244,7 +243,7 @@ void passeren(int* semaddr){
 	}
 }
 
-//SYSCALL 6
+
 int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 {
 	devreg_t* reg = (devreg_t*)devRegister;
@@ -255,7 +254,7 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	int result;
 
 	//debug
-	//mStr("Entering do_io");
+	mStr("Entering do_io");
 
 	fintTYPEandLINE(&type, &line, devRegister);
 
@@ -277,19 +276,19 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	}
 
 	//debug
-	// termreg_t* tmpReg = (termreg_t*)devRegister;
-	// reg_status = &(tmpReg->transm_status);
+	termreg_t* tmpReg = (termreg_t*)devRegister;
+	reg_status = &(tmpReg->transm_status);
 
-	// switch (*reg_status) {
-	// 	case DEV_NOT_INSTALLED:
-	// 		return(*reg_status);
-	// 	break;
-	// 	case DEV_S_READY:
-	// 		*reg_command = command;
-	// 	break;
-	// }
+	switch (*reg_status) {
+		case DEV_NOT_INSTALLED:
+	 		return(*reg_status);
+	 	break;
+	 	case DEV_S_READY:
+	 		*reg_command = command;
+	 	break;
+	 }
 
-	/*if (*reg_status == DEV_S_READY)
+	if (*reg_status == DEV_S_READY)
 	{
 		//debug
 		mStr("writing command");
@@ -304,7 +303,7 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		//debug
 		mStr("error");
 		result = *(int*)reg_status;
-	}*/
+	}
 
 	*reg_command = command;
 	//Blocco il processo

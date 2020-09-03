@@ -36,7 +36,9 @@ void init_interrupt(){ //Inizializzazione new area interrupt
 		//Virtual memory OFF
 		int_na->CP15_Control = CP15_DISABLE_VM(int_na->CP15_Control);
 		//interrup disabilitati ma timer abilitato
-		int_na->cpsr = STATUS_ALL_INT_DISABLE(int_na->cpsr);
+		//int_na->cpsr = STATUS_ALL_INT_DISABLE(int_na->cpsr); NON E' CAMBIATO NULLA NEMMENO CON LE RIGHE SOTTO
+		int_na->cpsr = STATUS_DISABLE_INT(int_na->cpsr);
+		int_na->cpsr = STATUS_DISABLE_TIMER(int_na->cpsr);
 
 
 	#endif
@@ -161,22 +163,26 @@ void intTerm()
 			mStr("debug prova");
 
 			if(dev->recv_status != DEV_S_READY)
-			{
+			{				mStr("ready");
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalR[i],dev->recv_status))
 					verhogen(&sem_dev.terminalR[i]);
 
 				dev->recv_command = DEV_C_ACK;
+	
 			}
 
 			if(dev->transm_status != DEV_S_READY)
-			{
+			{				mStr("not_ready");	
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalT[i],dev->transm_status))
 					verhogen(&sem_dev.terminalT[i]);
 
 				dev->transm_command = DEV_C_ACK;
+
 			}
+			
+			mStr("fine");
 		}
 	}
 }

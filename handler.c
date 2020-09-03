@@ -108,8 +108,8 @@ void syscall_handler()
 	get_param(param, cur_proc);
 
 	//debug
-	int *tmp;
-	int itr;
+	//int *tmp;
+	//int itr;
 	switch(SysNumb)
 	{
 			case(GETCPUTIME):
