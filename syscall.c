@@ -119,8 +119,8 @@ int create_process(state_t *state_p, int priority, void** cpid){
 
 //SYSCALL 3 PROBABILMENTE DA CAMBIARE, LEGGI SPECIFICHE NUOVE
 
-int terminate_process(void** pid) 	// Rimuovo il processo da terminare e tutti i suoi figli dalla ready_queue
-{	
+int terminate_process(void* pid) 	// Rimuovo il processo da terminare e tutti i suoi figli dalla ready_queue
+{
 	/*quando un processo viene terminato:
 			-il processo da eliminare va tolto dalla ready_queue_h
 			-la lista dei processi liberi (pcbFree) riceve un nuovo pcb_t allocabile(si usa freePcb)
@@ -129,34 +129,36 @@ int terminate_process(void** pid) 	// Rimuovo il processo da terminare e tutti i
 		e richiamato lo scheduler*/
 	pcb_t* p_daTerminare;
 	pcb_t* cur_proc = runningProc();
-	
-	if(pid == NULL || pid == 0)	//Il processo da terminare è il processo corrente
+
+	if(pid == NULL || pid == 0 || cur_proc == pid)	//Il processo da terminare è il processo corrente
 		p_daTerminare = cur_proc;
 	else{
-		
-		p_daTerminare = *((pcb_t **)pid);
+
+		p_daTerminare = (pcb_t *)pid;
 			//Controllo che appartenga alla progenie del processo corrente, se non è così termino con errore, vale anche se non ha un padre
-		if(!isChildOf(pcb_t* cur_proc, pcb_t* p_daTerminare))
+		if(!isChildOf(cur_proc, p_daTerminare))
 			return(-1);
 	}
-	
+
 	//Termino i processi figli
-	 //Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi 
+	 //Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi
     if( !emptyChild(p_daTerminare) ){
         	//Scorro su ogni figlio
-        pcb_t* figlio = removeChild(p_daTerminare);
+        pcb_t* figlio = returnChild(p_daTerminare);
 
         while(figlio != NULL){
             //Termino i processi figli
-            TerminateProcess(&figlio);        
+            TerminateProcess(figlio);
+
+						figlio = removeChild(p_daTerminare);
         }
     }
-	else //Se il pcb non ha figli lo rimuovo dalla lista del padre
-        outChild(tempPcb);
+	//else //Se il pcb non ha figli lo rimuovo dalla lista del padre
+  outChild(p_daTerminare);
 
 	//Gestisco la terminazione del processo corrente, non può essere bloccato ad un semaforo nè presente nella ready queue
 	if(p_daTerminare == cur_proc){
-		
+
 		setNULL(); //Setto il processo corrente a NULL
 		scheduler(); //Richiamo lo scheduler per passare al prossimo processo
 	}
@@ -175,13 +177,13 @@ int terminate_process(void** pid) 	// Rimuovo il processo da terminare e tutti i
 			outProcQ(head_rd, p_daTerminare);
 		}
 	}
-	
+
 	    //Libero il processo
     freePcb(p_daTerminare);
 		//Tutto è andato a buon fine
-    return 0; 
-	
-	/* Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi 
+    return 0;
+
+	/* Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi
 	if (!list_empty(&(p_daTerminare->p_child))){
 		//Inizializzo l'iteratore
 		struct list_head* childIt = &(p_daTerminare->p_child);
