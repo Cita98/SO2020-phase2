@@ -3,14 +3,16 @@
 void int_handler(){
 
 
-	/*pcb_t* curr_proc = runningProc();
+	pcb_t* curr_proc = runningProc();
 
 		//Time management del tempo passato in user mode
-	if(curr_proc->user_timeNEW > 0){
+	if(curr_proc != NULL){
+		if(curr_proc->user_timeNEW > 0){
 			curr_proc->user_time += getTOD_LO() - curr_proc->user_timeNEW;
 			curr_proc->user_timeNEW = 0;
+		}
 	}
-
+	
 	// Prendo il puntatore allo stato del processo interrotto, nella old area
 	state_t* old_proc = ((state_t*)INT_OLDAREA);
 
@@ -19,21 +21,9 @@ void int_handler(){
 		old_proc->prog_counter -= 4;
 	#endif
 
-	//mStr("sopra");
-
-
-	// Copio lo stato del processo interrotto nel processo corrente
-	updateCurrentProc(old_proc);*/
-
-	//aaadebugFc();
-
-	//mStr("sotto");
-	
+	//aaadebugFc();	
 
 	unsigned int cause = getCAUSE();
-
-	//debugFc();
-
 
 	if(CAUSE_IP_GET(cause,INT_TIMER))
 	{
@@ -78,7 +68,13 @@ void int_handler(){
 
 
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
-	//if(curr_proc != NULL) curr_proc->user_timeNEW = getTOD_LO();
+	if(curr_proc != NULL){
+		curr_proc->user_timeNEW = getTOD_LO();
+			// Copio lo stato del processo interrotto nel processo corrente
+		updateCurrentProc(old_proc);
+	}
+	else //Per gestire il ritorno da un interrupt sollevato in stato di wait
+		scheduler();
 
 }
 
