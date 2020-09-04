@@ -125,13 +125,13 @@ void syscall_handler()
 
 			case(CREATEPROCESS):
 
-				create_process((state_t *)*param[0], (int) *param[1], (void**) *param[2]);
+				result = create_process((state_t *)*param[0], (int) *param[1], (void**) *param[2]);
 
 			break;
 
 			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
-				terminate_process((void*)*param[0]);
+				result = terminate_process((void*)*param[0]);
 					/* Richiamo lo scheduler per passare al prossimo processo */
 				//setNULL();
 				//scheduler();
@@ -167,18 +167,25 @@ void syscall_handler()
 
 			case(SPECPASSUP):
 					//Assegnamento gestore di livello superiore
-				spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
+				result = spec_passup((int)*param[0], (state_t*)*param[1], (state_t*)*param[2]);
+
 			break;
 
 			case(GETPID):
-
-
+				get_pid_ppid((void**)*param[0], (void**)*param[1]);
 			break;
 
 			default: /* In tutti gli altri casi errore */
 				PANIC();
 			break;
 	}
+	
+	#ifdef TARGET_UMPS
+		cur_proc->p_s.reg_v0 = result;
+	#endif
+	#ifdef TARGET_UARM
+		cur_proc->p_s.a1 = result;
+	#endif
 
 	//Aggiornamento del tempo passato in kernel mode
 	if(cur_proc->kernel_timeNEW > 0){
@@ -192,6 +199,34 @@ void syscall_handler()
 
 }
 
-void tlb_handler(){return;} //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
+void tlb_handler(){
+	
+	
+	
+	
+	
+	return;} //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
 
 void pgmtrap_handler(){ return; } //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

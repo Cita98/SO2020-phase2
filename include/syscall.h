@@ -43,5 +43,8 @@ void blockProcAtDev(int type, int line, int subdevice);
 //SYSCALL 7
 int spec_passup(int type, state_t* old, state_t* new);
 
+//SYSCALL 8 
+void get_pid_ppid(void** pid, void** ppid);
+
 
 #endif

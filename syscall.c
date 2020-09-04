@@ -383,3 +383,39 @@ int spec_passup(int type, state_t* old, state_t* new){
 		return(0);
 	}
 }
+
+//SYSCALL 8
+void get_pid_ppid(void** pid, void** ppid){
+	
+	pcb_t* cur_proc = runningProc();
+	
+	if(pid != NULL)
+		*pid = cur_proc;
+	if(ppid != NULL)
+		*ppid = cur_proc->p_parent;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

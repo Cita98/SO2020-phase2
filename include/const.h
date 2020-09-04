@@ -62,6 +62,19 @@ typedef unsigned int * p_u_int;
 
 #define STATUSMASK 0xFF
 
+//GESTORI DI LIVELLO SUPERIORE
+#define SysBp_Old 	spec_oarea[0]
+#define Tlb_Old 	spec_oarea[1]
+#define PrgTrap_Old spec_oarea[2]
+
+#define SysBp_New 	spec_narea[0]
+#define Tlb_New		spec_narea[1]
+#define PrgTrap_New spec_narea[2]
+
+#define SysBp_Assigned   spec_assigned[0]
+#define Tlb_Assigned   	 spec_assigned[1]
+#define PrgTrap_Assigned spec_assigned[2]
+
 // funzione per debug uarm
 #ifdef TARGET_UARM
 #define mStr(str) //tprint(str"\n");
