@@ -63,9 +63,6 @@ void scheduler()
 				/* Se un processo si trovava nella lista dei processi pronti deve essere in user mode, se viene caricato esegue il proprio codice non quello di un'eccezione */
 			current_proc->user_timeNEW = getTOD_LO();
 
-			//debug
-			mStr("Loading state OK");
-
 				/* Carico lo stato del processo all'interno del processore */
 			LDST(&(current_proc->p_s));
 	}
@@ -125,8 +122,8 @@ void updateCurrentProc(state_t* src_state) //Copia lo stato di un processo nel p
 {
 	//mStr("ok");
 
-	if(current_proc == NULL)
-		aaadebugFc();
+	// if(current_proc == NULL)
+	// 	aaadebugFc();
 
 	cp_state(src_state, &(current_proc->p_s));
 }

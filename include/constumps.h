@@ -71,7 +71,7 @@
 #define PENDING_BITMAP_START 0x1000003c
 
 //Macro che ritorna una word contenente il device che richiede l'interrupt nella linea LINENO
-#define INTR_CURRENT_BITMAP(LINENO)	 (U32 *)(PENDING_BITMAP_START + (WORD_SIZE * (LINENO - 3)))
+#define INTR_CURRENT_BITMAP(LINENO)	 (unsigned int *)(PENDING_BITMAP_START + (WORD_SIZE * (LINENO - 3)))
 
 //Trova indirizzo base device
 #define DEV_ADDR(INT_LINE_NO,DEV_NO) DEV_REGS_BASE + ((INT_LINE_NO - 3) * 0x80 ) + (DEV_NO * 0x10)

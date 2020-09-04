@@ -12,16 +12,16 @@ void int_handler(){
 			curr_proc->user_timeNEW = 0;
 		}
 	}
-	
+
 	// Prendo il puntatore allo stato del processo interrotto, nella old area
 	state_t* old_proc = ((state_t*)INT_OLDAREA);
 
 	#ifdef TARGET_UARM
-			//Program counter della old area decrementato di 4 byte
-		old_proc->prog_counter -= 4;
+	// 		//Program counter della old area decrementato di 4 byte
+	 	old_proc->prog_counter -= 4;
 	#endif
 
-	//aaadebugFc();	
+	//aaadebugFc();
 
 	unsigned int cause = getCAUSE();
 
@@ -71,7 +71,8 @@ void int_handler(){
 	if(curr_proc != NULL){
 		curr_proc->user_timeNEW = getTOD_LO();
 			// Copio lo stato del processo interrotto nel processo corrente
-		updateCurrentProc(old_proc);
+		//updateCurrentProc(old_proc);
+		LDST(old_proc);
 	}
 	else //Per gestire il ritorno da un interrupt sollevato in stato di wait
 		scheduler();

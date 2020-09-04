@@ -28,7 +28,7 @@ st_sem_dev sem_dev;
 
 //Funzioni
 void init_interrupt();
-int checkDevLine(int intLine, int i);
+int checkDevLine(int intLine, int dev);
 int setIOresult(int *key, unsigned int res);
 //int getINT_LINE();
 

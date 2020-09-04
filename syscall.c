@@ -288,10 +288,8 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	//  	break;
 	//  }
 
-	/*if (*reg_status == DEV_S_READY)
+	if ((*reg_status & STATUSMASK) == DEV_S_READY)
 	{
-		//debug
-		mStr("writing command");
 		//Eseguo il comando
 		*reg_command = command;
 		//Blocco il processo
@@ -300,15 +298,13 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		result = DEV_S_READY;
 	}else
 	{
-		//debug
-		mStr("error");
 		result = *(int*)reg_status;
-	}*/
+	}
 
-	*reg_command = command;
+	/**reg_command = command;
 	//Blocco il processo
 	blockProcAtDev(type,line,subdevice);
-	result = DEV_S_READY;
+	result = DEV_S_READY;*/
 
 	return(result);
 }

@@ -68,21 +68,12 @@ void init_interrupt(){ //Inizializzazione new area interrupt
 
 	#endif
 
-	//debug
-	mStr("init interrupt... OK");
-
 }
 
 //Ritorna vero se il device $i nella linea interrupt $intLine sta richiedendo un interrupt
-int checkDevLine(int intLine, int i)
+int checkDevLine(int intLine, int dev)
 {
-	// #ifdef TARGET_UARM
-	return(CDEV_BITMAP_ADDR(intLine)>>i)&(0x00000001);
-	// #endif
-	//
-	// #ifdef TARGET_UMPS
-	// return(INTR_CURRENT_BITMAP(intLine)>>i)&(0x00000001);
-	// #endif
+	return *INTR_CURRENT_BITMAP(intLine) & (1 << dev);
 }
 
 //Setta il risultato di una operazione IO nel primo processo bloccato al semaforo $key
@@ -93,6 +84,10 @@ int setIOresult(int *key, unsigned int res)
 	pcb_t *temp = headBlocked(key);
 	if(temp != NULL)
 	{
+		/*#ifdef TARGET_UARM
+				//Program counter della old area decrementato di 4 byte
+			temp->p_s.prog_counter -= 1;
+		#endif*/
 		#ifdef TARGET_UMPS
 			temp->p_s.reg_v0 = res;
 		#endif
@@ -180,59 +175,37 @@ void intTerm()
 {
 	for(int i = 0; i < DEV_PER_INT; i++)
 	{
-		//if(checkDevLine(INT_TERMINAL,0))
-		//{
+		if(checkDevLine(INT_TERMINAL,i))
+		{
 			//Il device i sulla linea INT_DISK ha alzato un interrupt
-			termreg_t *dev = (termreg_t*)DEV_ADDR(INT_TERMINAL, i);
+			termreg_t *dev = (termreg_t*)DEV_REG_ADDR(INT_TERMINAL, i);
 
 			//mStr("debug prova");
 
 
-			/*if((dev->recv_status & STATUSMASK) != DEV_S_READY)
+			if((dev->recv_status & STATUSMASK) != DEV_S_READY)
 			{
+
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalR[i],dev->recv_status))
 					verhogen(&sem_dev.terminalR[i]);
 
 				dev->recv_command = DEV_C_ACK;
 
-			}*/
+			}
 
-			/*if((dev->transm_status & STATUSMASK) != DEV_S_READY)
+			if((dev->transm_status & STATUSMASK) != DEV_S_READY)
 			{
-
+				//aaadebugFc();
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalT[i],dev->transm_status))
-					verhogen(&sem_dev.terminalT[i]);
-
+				 	verhogen(&sem_dev.terminalT[i]);
+				//
 				dev->transm_command = DEV_C_ACK;
 
-			}*/
-			if(i == 0)
-				{aaadebugFc();}
-			if(i == 1)
-				{aaadebugFc();}
+			}
 
-				if(i == 2)
-					{aaadebugFc();}
-
-					if(i == 3)
-						{aaadebugFc();}
-
-						if(i == 4)
-							{aaadebugFc();}
-
-
-							if(i == 5)
-								{aaadebugFc();}
-
-								if(i == 6)
-									{aaadebugFc();}
-
-									if(i == 7)
-										{aaadebugFc();}
-			mStr("fine");
-		//}
+		}
 	}
 }
 

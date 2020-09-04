@@ -23,6 +23,8 @@
 //Trova indirizzo base device
 #define DEV_ADDR(INT_LINE_NO,DEV_NO) DEV_REGS_BASE + ((INT_LINE_NO - 3) * 0x80 ) + (DEV_NO * 0x10)
 
+#define INTR_CURRENT_BITMAP(LINENO) (unsigned int *)CDEV_BITMAP_ADDR(LINENO)
+
 //Gestione timing
 #define TOD_LO	*((unsigned int*)0x000002E0)
 #define getTOD_LO() getTODLO()

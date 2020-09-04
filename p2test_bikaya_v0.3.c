@@ -81,7 +81,7 @@ typedef unsigned int pid_t;
 #define TERMCHARMASK 0xFF00
 
 #define MINLOOPTIME 1000
-#define LOOPNUM     10000
+#define LOOPNUM     300
 
 #define BADADDR 0xFFFFFFFF /* could be 0x00000000 as well */
 
@@ -161,7 +161,6 @@ void print(char *msg) {
 
     SYSCALL(PASSEREN, (int)&term_mut, 0, 0); /* get term_mut lock */
 
-
     while (*s != '\0') {
         /* Put "transmit char" command+char in term0 register (3rd word). This
                  actually starts the operation on the device! */
@@ -181,8 +180,6 @@ void print(char *msg) {
         s++;
     }
 
-    mStr("do_io ok");
-
     SYSCALL(VERHOGEN, (int)&term_mut, 0, 0); /* release term_mut */
 }
 
@@ -198,7 +195,6 @@ void test() {
         print("error: p1 v(testsem) with no effects\n");
         PANIC();
     }
-
 
     print("p1 v(testsem)\n");
 
@@ -328,9 +324,41 @@ void p2() {
     now1 = getTODLO();                                                       /* time of day   */
     SYSCALL(GETCPUTIME, (int)&user_t1, (int)&kernel_t1, (int)&wallclock_t1); /* CPU time used */
 
+    char a;
+    int b;
+
     /* delay for some time */
     for (i = 1; i < LOOPNUM; i++)
-        ;
+    {
+      // if(i > 99)
+      // {
+      //   b = i/100;
+      //   a = (char)48+b;
+      //   print(&a);
+      //   b = i%100;
+      //   b = b/10;
+      //   a = (char)48+b;
+      //   print(&a);
+      //   b = i%100;
+      //   b = b%10;
+      //   a = (char)48+b;
+      //   print(&a);
+      // }
+      // if( i > 9 && i < 100)
+      // {
+      //   b = i/10;
+      //   a = (char)48+b;
+      //   print(&a);
+      //   b = i%10;
+      //   a = (char)48+b;
+      //   print(&a);
+      // }
+      // if(i < 10){
+      //   a = (char)48+i;
+      //   print(&a);
+      // }
+      // print("\n");
+    }
 
     SYSCALL(GETCPUTIME, (int)&user_t2, (int)&kernel_t2, (int)&wallclock_t2); /* CPU time used */
     now2 = getTODLO();                                                       /* time of day  */
