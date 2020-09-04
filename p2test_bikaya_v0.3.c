@@ -81,7 +81,7 @@ typedef unsigned int pid_t;
 #define TERMCHARMASK 0xFF00
 
 #define MINLOOPTIME 1000
-#define LOOPNUM     300
+#define LOOPNUM     10000
 
 #define BADADDR 0xFFFFFFFF /* could be 0x00000000 as well */
 
@@ -324,41 +324,9 @@ void p2() {
     now1 = getTODLO();                                                       /* time of day   */
     SYSCALL(GETCPUTIME, (int)&user_t1, (int)&kernel_t1, (int)&wallclock_t1); /* CPU time used */
 
-    char a;
-    int b;
-
     /* delay for some time */
     for (i = 1; i < LOOPNUM; i++)
-    {
-      // if(i > 99)
-      // {
-      //   b = i/100;
-      //   a = (char)48+b;
-      //   print(&a);
-      //   b = i%100;
-      //   b = b/10;
-      //   a = (char)48+b;
-      //   print(&a);
-      //   b = i%100;
-      //   b = b%10;
-      //   a = (char)48+b;
-      //   print(&a);
-      // }
-      // if( i > 9 && i < 100)
-      // {
-      //   b = i/10;
-      //   a = (char)48+b;
-      //   print(&a);
-      //   b = i%10;
-      //   a = (char)48+b;
-      //   print(&a);
-      // }
-      // if(i < 10){
-      //   a = (char)48+i;
-      //   print(&a);
-      // }
-      // print("\n");
-    }
+        ;
 
     SYSCALL(GETCPUTIME, (int)&user_t2, (int)&kernel_t2, (int)&wallclock_t2); /* CPU time used */
     now2 = getTODLO();                                                       /* time of day  */

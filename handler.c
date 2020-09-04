@@ -176,10 +176,46 @@ void syscall_handler()
 			break;
 
 			default: /* In tutti gli altri casi errore */
-				PANIC();
+				//Salvo lo stato
+				//SaveState((state_t*)SYSBK_OLDAREA, &(ACTIVE_PCB->p_s));
+
+				//Controllo se ho un gestore di livello superiore
+				if(cur_proc->SysBp_Assigned){
+
+					//Copio nell'old area del processo l'old area della sys
+					cp_state(old_proc,  cur_proc->SysBp_Old);
+
+					//Aggiornamento del tempo passato in kernel mode
+    			if(cur_proc->kernel_timeNEW > 0){
+                    cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+                    cur_proc->kernel_timeNEW = 0;
+                }
+    			//Ricomincio a contare il tempo passato in user mode
+    			cur_proc->user_timeNEW = getTOD_LO();
+
+					//stopKernelTime(cur_proc);
+					//startUserTime(cur_proc);
+
+					//Carico la new area del gestore nel processore
+					LDST(cur_proc->SysBp_New);
+
+				}
+				else	//Non ho un gestore di livello superiore
+				{
+					//Gestione del tempo
+					if(cur_proc->kernel_timeNEW > 0){
+                    cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+                    cur_proc->kernel_timeNEW = 0;
+					}
+					//stopKernelTime(ACTIVE_PCB);
+
+					//Il processo va terminato
+					terminate_process(0);
+
+				}
 			break;
 	}
-	
+
 	#ifdef TARGET_UMPS
 		cur_proc->p_s.reg_v0 = result;
 	#endif
@@ -200,33 +236,140 @@ void syscall_handler()
 }
 
 void tlb_handler(){
-	
-	
-	
-	
-	
-	return;} //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
 
-void pgmtrap_handler(){ return; } //Da implementare nelle fasi successive, RICORDA IL TIMING NELL'IMPLEMENTAZIONE
+	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
+	state_t *old_proc = (state_t *) TLB_OLDAREA;
 
-
-
-
-
+	//Time management del tempo passato in user mode
+		if(cur_proc->user_timeNEW > 0){
+				cur_proc->user_time += getTOD_LO() - cur_proc->user_timeNEW;
+				cur_proc->user_timeNEW = 0;
+		}
+		//time management, inizio a contare il tempo passato in kernel mode
+		cur_proc->kernel_timeNEW = getTOD_LO();
 
 
 
 
+	/*int flag = FALSE;
+	unsigned int cause;
+
+	#ifdef TARGET_UMPS
+
+		//Accedo alla old area della tlb
+		cause = (CAUSE_GET_EXCCODE(AREA->cause));
+
+		//Controllo se viene alzata un exception di questo tipo
+		if(cause==EXC_TLBMOD || cause==EXC_TLBINVLOAD || cause==EXC_TLBINVSTORE || cause==EXC_BADPTE || cause==EXC_PTEMISS){
+
+			flag = TRUE;
+
+		}
+
+	#endif
+
+	#ifdef TARGET_UARM
+
+    	//Accedo alla old area della tlb
+		cause = CAUSE_EXCCODE_GET(AREA->CP15_Cause);
+
+		//Controllo se viene alzata un exception di questo tipo
+		if(cause == EXC_TLBMOD || cause ==  EXC_TLBINVLOAD || cause == EXC_TLBINVSTORE || cause == EXC_BADPTE || cause == EXC_PTEMISS || cause == EXC_BADPAGTBL || cause == EXC_BADSEGTBL || cause == UTLBLEXCEPTION || cause == UTLBSEXCEPTION){
+
+			flag = TRUE;
+
+		}
+
+	#endif*/
+
+	//Controllo se ho un gestore di livello superiore
+	if(cur_proc->Tlb_Assigned){
+
+		//Salvo lo stato della old area nel processo attuale
+		updateCurrentProc(old_proc);
 
 
+		//Copio nell'old area del processo l'old area della tlb
+		cp_state(old_proc,  (cur_proc->Tlb_Old));
+
+		//Aggiornamento del tempo passato in kernel mode
+		if(cur_proc->kernel_timeNEW > 0){
+							cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+							cur_proc->kernel_timeNEW = 0;
+					}
+		//Ricomincio a contare il tempo passato in user mode
+		cur_proc->user_timeNEW = getTOD_LO();
+
+		//Cario la new area nel processore
+		LDST(cur_proc->Tlb_New);
+
+	}
+
+	//Non ho un gestore al livello superiore
+	else{
+
+		//Gestione del tempo
+		if(cur_proc->kernel_timeNEW > 0){
+							cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+							cur_proc->kernel_timeNEW = 0;
+		}
+		//Il processo va terminato
+		terminate_process(0);
+
+	}
+
+	return;
+}
+
+void pgmtrap_handler()
+{
+	pcb_t* cur_proc = runningProc(); //Prendo il puntatore al processo corrente
+	state_t *old_proc = (state_t *) PGMTRAP_OLDAREA;
+
+	//Time management del tempo passato in user mode
+		if(cur_proc->user_timeNEW > 0){
+				cur_proc->user_time += getTOD_LO() - cur_proc->user_timeNEW;
+				cur_proc->user_timeNEW = 0;
+		}
+		//time management, inizio a contare il tempo passato in kernel mode
+		cur_proc->kernel_timeNEW = getTOD_LO();
 
 
+	//Controllo se ho un gestore di livello superiore
+	if(cur_proc->PrgTrap_Assigned){
+
+		//Salvo lo stato della old area nel processo attuale
+		updateCurrentProc(old_proc);
 
 
+		//Copio nell'old area del processo l'old area della tlb
+		cp_state(old_proc,  (cur_proc->PrgTrap_Old));
 
+		//Aggiornamento del tempo passato in kernel mode
+		if(cur_proc->kernel_timeNEW > 0){
+							cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+							cur_proc->kernel_timeNEW = 0;
+					}
+		//Ricomincio a contare il tempo passato in user mode
+		cur_proc->user_timeNEW = getTOD_LO();
 
+		//Cario la new area nel processore
+		LDST(cur_proc->PrgTrap_New);
 
+	}
 
+	//Non ho un gestore al livello superiore
+	else{
 
+		//Gestione del tempo
+		if(cur_proc->kernel_timeNEW > 0){
+							cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+							cur_proc->kernel_timeNEW = 0;
+		}
+		//Il processo va terminato
+		terminate_process(0);
 
+	}
 
+	return;
+}
