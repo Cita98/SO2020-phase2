@@ -52,6 +52,10 @@ pcb_t* allocPcb()
    P_pcb->p_parent = NULL;
    P_pcb->p_semkey = NULL;
    P_pcb->priority = 0;
+   	///Inizializzazione variabili Spec_PassUp
+   P_pcb->spec_assigned[0] = FALSE; // Syscall/breakpoint
+   P_pcb->spec_assigned[1] = FALSE; // TLB
+   P_pcb->spec_assigned[2] = FALSE; // Program trap
 
    #ifdef TARGET_UMPS
    state_t* state = &(P_pcb->p_s);

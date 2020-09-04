@@ -97,6 +97,7 @@ int create_process(state_t *state_p, int priority, void** cpid){
 	else{
 			//Setto la priorità e lo stato del nuovo processo
 		new_proc->original_priority = priority;
+		new_proc->priority = priority;
 		cp_state(state_p, &(new_proc->p_s));
 
 		pcb_t* cur_proc = runningProc();

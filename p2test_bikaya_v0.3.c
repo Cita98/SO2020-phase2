@@ -542,7 +542,7 @@ void p5() {
     print("p5 starts (and hopefully dies)\n");
 
     SYSCALL(13, 0, 0, 0); /* should cause termination because p5 has no
-                                                                                                   trap vector */
+                                                                                                  trap vector */
 
     print("error: p5 alive after SYS13() with no trap vector\n");
 
