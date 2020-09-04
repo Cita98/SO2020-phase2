@@ -20,25 +20,50 @@ void init_interrupt(){ //Inizializzazione new area interrupt
     sem_dev.terminalT[i] = 0;
 	}
 
+	/*INTERRUPT->pc_epc = (unsigned int)interruptHandler;
+		INTERRUPT->reg_sp = RAMTOP;
+		INTERRUPT->status = INTERRUPT->status & ~STATUS_IEc;    	//Tutti gli interrupt disabilitati
+		INTERRUPT->status = INTERRUPT->status & ~STATUS_IEp;		//Disabilito IEp
+		INTERRUPT->status = INTERRUPT->status & ~STATUS_IM_MASK; 	//Disabilito maschera interrupt
+		INTERRUPT->status = INTERRUPT->status & ~STATUS_KUc;		//Abilito kernel mode KUc=0 OK
+		INTERRUPT->status = INTERRUPT->status & ~STATUS_VMc;		//Disabilito virtual memory OK
+		INTERRUPT->status = INTERRUPT->status | STATUS_CU0;*/
+
 	#ifdef TARGET_UMPS
 
+
+	int_na->status = int_na->status & ~STATUS_IEc;    	//Tutti gli interrupt disabilitati
+	int_na->status = int_na->status & ~STATUS_IEp;		//Disabilito IEp
+	int_na->status = int_na->status & ~STATUS_IM_MASK; 	//Disabilito maschera interrupt
+	int_na->status = int_na->status & ~STATUS_KUc;		//Abilito kernel mode KUc=0 OK
+	int_na->status = int_na->status & ~STATUS_VMc;		//Disabilito virtual memory OK
+	int_na->status = int_na->status | STATUS_CU0;
 		//interrup disabilitati, Kernel mode ON, Virtual memory OFF
-		int_na->status &= (~STATUS_KUc & ~STATUS_VMc & ~STATUS_IM_MASK);
+		/*int_na->status &= (~STATUS_KUc & ~STATUS_VMc & ~STATUS_IM_MASK);
 		int_na->status |= STATUS_IEp;
-		int_na->status |= STATUS_IEc;
+		int_na->status |= STATUS_IEc;*/
 
 	#endif
 
 	#ifdef TARGET_UARM
 
-		//System mode abilitato (sarebbe il kernel mode di UARM)
-		int_na->cpsr |= STATUS_SYS_MODE;
-		//Virtual memory OFF
-		int_na->CP15_Control = CP15_DISABLE_VM(int_na->CP15_Control);
+	/*state_t *INTERRUPT = (state_t*) INT_NEWAREA;
+		INTERRUPT->pc = (unsigned int)interruptHandler;
+		INTERRUPT->sp = RAM_TOP;
+		INTERRUPT->cpsr = STATUS_DISABLE_INT(INTERRUPT->cpsr);
+		INTERRUPT->cpsr = STATUS_DISABLE_TIMER(INTERRUPT->cpsr);
+		INTERRUPT->cpsr = INTERRUPT->cpsr | STATUS_SYS_MODE;
+		INTERRUPT->CP15_Control = CP15_DISABLE_VM(INTERRUPT->CP15_Control);*/
+
+
 		//interrup disabilitati ma timer abilitato
 		//int_na->cpsr = STATUS_ALL_INT_DISABLE(int_na->cpsr); NON E' CAMBIATO NULLA NEMMENO CON LE RIGHE SOTTO
 		int_na->cpsr = STATUS_DISABLE_INT(int_na->cpsr);
 		int_na->cpsr = STATUS_DISABLE_TIMER(int_na->cpsr);
+		//System mode abilitato (sarebbe il kernel mode di UARM)
+		int_na->cpsr |= STATUS_SYS_MODE;
+		//Virtual memory OFF
+		int_na->CP15_Control = CP15_DISABLE_VM(int_na->CP15_Control);
 
 
 	#endif
@@ -155,34 +180,65 @@ void intTerm()
 {
 	for(int i = 0; i < DEV_PER_INT; i++)
 	{
-		if(checkDevLine(INT_TERMINAL,i))
-		{
+		//if(checkDevLine(INT_TERMINAL,0))
+		//{
 			//Il device i sulla linea INT_DISK ha alzato un interrupt
 			termreg_t *dev = (termreg_t*)DEV_ADDR(INT_TERMINAL, i);
 
-			mStr("debug prova");
+			//mStr("debug prova");
 
-			if(dev->recv_status != DEV_S_READY)
-			{				mStr("ready");
+
+			/*if((dev->recv_status & STATUSMASK) != DEV_S_READY)
+			{
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalR[i],dev->recv_status))
 					verhogen(&sem_dev.terminalR[i]);
 
 				dev->recv_command = DEV_C_ACK;
-	
-			}
 
-			if(dev->transm_status != DEV_S_READY)
-			{				mStr("not_ready");	
+			}*/
+
+			/*if((dev->transm_status & STATUSMASK) != DEV_S_READY)
+			{
+
 				//Se non si riesce a scrivere il risultato della io BOH... vado in panic?
 				if(!setIOresult(&sem_dev.terminalT[i],dev->transm_status))
 					verhogen(&sem_dev.terminalT[i]);
 
 				dev->transm_command = DEV_C_ACK;
 
-			}
-			
+			}*/
+			if(i == 0)
+				{aaadebugFc();}
+			if(i == 1)
+				{aaadebugFc();}
+
+				if(i == 2)
+					{aaadebugFc();}
+
+					if(i == 3)
+						{aaadebugFc();}
+
+						if(i == 4)
+							{aaadebugFc();}
+
+
+							if(i == 5)
+								{aaadebugFc();}
+
+								if(i == 6)
+									{aaadebugFc();}
+
+									if(i == 7)
+										{aaadebugFc();}
 			mStr("fine");
-		}
+		//}
 	}
+}
+
+void aaadebugFc()
+{
+	int i = 5;
+	i = i +3;
+	return;
 }

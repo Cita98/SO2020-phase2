@@ -2,7 +2,8 @@
 
 void int_handler(){
 
-	pcb_t* curr_proc = runningProc();
+
+	/*pcb_t* curr_proc = runningProc();
 
 		//Time management del tempo passato in user mode
 	if(curr_proc->user_timeNEW > 0){
@@ -10,7 +11,7 @@ void int_handler(){
 			curr_proc->user_timeNEW = 0;
 	}
 
-	/* Prendo il puntatore allo stato del processo interrotto, nella old area */
+	// Prendo il puntatore allo stato del processo interrotto, nella old area
 	state_t* old_proc = ((state_t*)INT_OLDAREA);
 
 	#ifdef TARGET_UARM
@@ -18,14 +19,21 @@ void int_handler(){
 		old_proc->prog_counter -= 4;
 	#endif
 
-	mStr("sopra");
+	//mStr("sopra");
 
-	/* Copio lo stato del processo interrotto nel processo corrente */
-	updateCurrentProc(old_proc);
 
-	mStr("sotto");
+	// Copio lo stato del processo interrotto nel processo corrente
+	updateCurrentProc(old_proc);*/
+
+	//aaadebugFc();
+
+	//mStr("sotto");
+	
 
 	unsigned int cause = getCAUSE();
+
+	//debugFc();
+
 
 	if(CAUSE_IP_GET(cause,INT_TIMER))
 	{
@@ -63,14 +71,14 @@ void int_handler(){
 
 	if(CAUSE_IP_GET(cause,INT_TERMINAL))
 	{
-		mStr("Term");
+		//mStr("Term");
 		intTerm();
 	}
 
 
 
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
-	if(curr_proc != NULL) curr_proc->user_timeNEW = getTOD_LO();
+	//if(curr_proc != NULL) curr_proc->user_timeNEW = getTOD_LO();
 
 }
 

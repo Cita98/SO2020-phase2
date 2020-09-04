@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "pcb.h"
 #include "utilis.h"
+#include "interrupt.h"
 
 extern void termprint(char *str);
 
@@ -29,6 +30,15 @@ void scheduler()
 	{ //Se la ready queue è vuota metto il sistema in attesa
 		setIT_TIMER(TIME_SLICE);
 
+		//aaadebugFc();
+
+		#ifdef TARGET_UMPS
+
+					//Abilito tutti gli interrupt e vado in kernel mode
+					setSTATUS((getSTATUS() | STATUS_IEc) | STATUS_IM_MASK);
+
+				#endif
+
 		#ifdef TARGET_UARM
       //Abilito tutti gli interrupt e vado in kernel mode
       setSTATUS(getSTATUS() | STATUS_SYS_MODE);
@@ -36,7 +46,7 @@ void scheduler()
       setSTATUS(STATUS_ENABLE_TIMER(getSTATUS()));
 			setSTATUS(STATUS_ENABLE_INT(getSTATUS()));
     #endif
-		
+
 		WAIT();
 	}
 	else{//Altrimenti
@@ -114,5 +124,9 @@ void initScheduler(){ //Inizializzazione della ready queue
 void updateCurrentProc(state_t* src_state) //Copia lo stato di un processo nel processo corrente
 {
 	//mStr("ok");
+
+	if(current_proc == NULL)
+		aaadebugFc();
+
 	cp_state(src_state, &(current_proc->p_s));
 }

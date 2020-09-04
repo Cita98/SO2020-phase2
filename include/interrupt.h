@@ -47,4 +47,6 @@ void intPrint();
 //Interrupt terminal
 void intTerm();
 
+void aaadebugFc();
+
 #endif
