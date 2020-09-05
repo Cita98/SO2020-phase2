@@ -21,6 +21,11 @@ void int_handler(){
 	 	old_proc->prog_counter -= 4;
 	#endif
 
+	if(curr_proc != NULL){
+		// Copio lo stato del processo interrotto nel processo corrente
+		updateCurrentProc(old_proc);
+	}
+
 	//aaadebugFc();
 
 	unsigned int cause = getCAUSE();
@@ -70,8 +75,6 @@ void int_handler(){
 	//Quando si gestisce un interrupt tutte le linee di interrupt sono disabilitate quindi per forza alla fine si torna in user mode
 	if(curr_proc != NULL){
 		curr_proc->user_timeNEW = getTOD_LO();
-			// Copio lo stato del processo interrotto nel processo corrente
-		//updateCurrentProc(old_proc);
 		LDST(old_proc);
 	}
 	else //Per gestire il ritorno da un interrupt sollevato in stato di wait
@@ -112,9 +115,6 @@ void syscall_handler()
 	int SysNumb = get_SysNumb(cur_proc); //Recupero il numero della Syscall in maniera differente per le due architetture
 	get_param(param, cur_proc);
 
-	//debug
-	//int *tmp;
-	//int itr;
 	switch(SysNumb)
 	{
 			case(GETCPUTIME):
@@ -132,9 +132,6 @@ void syscall_handler()
 			case(TERMINATEPROCESS):
 					/* Termino il processo corrente e tutta la sua progenie */
 				result = terminate_process((void*)*param[0]);
-					/* Richiamo lo scheduler per passare al prossimo processo */
-				//setNULL();
-				//scheduler();
 			break;
 
 			case(VERHOGEN):
@@ -151,7 +148,7 @@ void syscall_handler()
 			case(WAITIO):
 
 				result = do_io((unsigned int)*param[0],(unsigned int*)*param[1],(int)*param[2]);
-				if(result != DEV_S_READY)
+				/*if(result != DEV_S_READY)
 				{
 					#ifdef TARGET_UMPS
 						cur_proc->p_s.reg_v0 = result;
@@ -159,9 +156,7 @@ void syscall_handler()
 					#ifdef TARGET_UARM
 						cur_proc->p_s.a1 = result;
 					#endif
-					//Se l'operazione di IO non ha impartito il comando riavvio il processo inserendo come risultato della syscall il registro status del device
-					//LDST(&(cur_proc->p_s));
-				}
+				}*/
 
 			break;
 
@@ -175,9 +170,7 @@ void syscall_handler()
 				get_pid_ppid((void**)*param[0], (void**)*param[1]);
 			break;
 
-			default: /* In tutti gli altri casi errore */
-				//Salvo lo stato
-				//SaveState((state_t*)SYSBK_OLDAREA, &(ACTIVE_PCB->p_s));
+			default: //sysbp
 
 				//Controllo se ho un gestore di livello superiore
 				if(cur_proc->SysBp_Assigned){
@@ -193,9 +186,6 @@ void syscall_handler()
     			//Ricomincio a contare il tempo passato in user mode
     			cur_proc->user_timeNEW = getTOD_LO();
 
-					//stopKernelTime(cur_proc);
-					//startUserTime(cur_proc);
-
 					//Carico la new area del gestore nel processore
 					LDST(cur_proc->SysBp_New);
 
@@ -207,7 +197,6 @@ void syscall_handler()
                     cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
                     cur_proc->kernel_timeNEW = 0;
 					}
-					//stopKernelTime(ACTIVE_PCB);
 
 					//Il processo va terminato
 					terminate_process(0);
@@ -248,39 +237,6 @@ void tlb_handler(){
 		//time management, inizio a contare il tempo passato in kernel mode
 		cur_proc->kernel_timeNEW = getTOD_LO();
 
-
-
-
-	/*int flag = FALSE;
-	unsigned int cause;
-
-	#ifdef TARGET_UMPS
-
-		//Accedo alla old area della tlb
-		cause = (CAUSE_GET_EXCCODE(AREA->cause));
-
-		//Controllo se viene alzata un exception di questo tipo
-		if(cause==EXC_TLBMOD || cause==EXC_TLBINVLOAD || cause==EXC_TLBINVSTORE || cause==EXC_BADPTE || cause==EXC_PTEMISS){
-
-			flag = TRUE;
-
-		}
-
-	#endif
-
-	#ifdef TARGET_UARM
-
-    	//Accedo alla old area della tlb
-		cause = CAUSE_EXCCODE_GET(AREA->CP15_Cause);
-
-		//Controllo se viene alzata un exception di questo tipo
-		if(cause == EXC_TLBMOD || cause ==  EXC_TLBINVLOAD || cause == EXC_TLBINVSTORE || cause == EXC_BADPTE || cause == EXC_PTEMISS || cause == EXC_BADPAGTBL || cause == EXC_BADSEGTBL || cause == UTLBLEXCEPTION || cause == UTLBSEXCEPTION){
-
-			flag = TRUE;
-
-		}
-
-	#endif*/
 
 	//Controllo se ho un gestore di livello superiore
 	if(cur_proc->Tlb_Assigned){

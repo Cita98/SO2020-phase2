@@ -16,11 +16,12 @@ void init_syscall(){ //Inizializzazione syscall new area
 
 	#ifdef TARGET_UMPS
 
-		//interrup disabilitati, Kernel mode ON, Virtual memory OFF
-		sys_na->status &= (~STATUS_KUc & ~STATUS_VMc & ~STATUS_IM_MASK);
-		//Interrupt interval timer abilitato
-		sys_na->status |= STATUS_IEc;
-		sys_na->status |= STATUS_IEp;
+		sys_na->status = sys_na->status & ~STATUS_IEc;    	//Tutti gli interrupt disabilitati
+		sys_na->status = sys_na->status & ~STATUS_IEp;		//Disabilito IEp
+		sys_na->status = sys_na->status & ~STATUS_IM_MASK; 	//Disabilito maschera interrupt
+		sys_na->status = sys_na->status & ~STATUS_KUc;		//Abilito kernel mode KUc=0 OK
+		sys_na->status = sys_na->status & ~STATUS_VMc;		//Disabilito virtual memory OK
+		sys_na->status = sys_na->status | STATUS_CU0;
 
 	#endif
 
@@ -33,12 +34,10 @@ void init_syscall(){ //Inizializzazione syscall new area
 		//interrup disabilitati
 		sys_na->cpsr = STATUS_DISABLE_INT(sys_na->cpsr);
 		//Interval Timer abilitato
-		sys_na->cpsr = STATUS_ENABLE_TIMER(sys_na->cpsr);
+		sys_na->cpsr = STATUS_DISABLE_TIMER(sys_na->cpsr);
 
 	#endif
 
-	//debug
-	mStr("init syscall... OK");
 }
 
 int get_SysNumb(pcb_t* curr_proc){
@@ -189,19 +188,6 @@ int terminate_process(void* pid) 	// Rimuovo il processo da terminare e tutti i 
     freePcb(p_daTerminare);
 		//Tutto è andato a buon fine
     return 0;
-
-	/* Caso base: p non ha figli, quindi controllo che ne abbia e in caso ricorro su di essi
-	if (!list_empty(&(p_daTerminare->p_child))){
-		//Inizializzo l'iteratore
-		struct list_head* childIt = &(p_daTerminare->p_child);
-		// scorro su ogni figlio
-		list_for_each(childIt, &(p_daTerminare->p_child))
-		{
-			pcb_t** term_Pcb = &container_of(childIt, pcb_t, p_sib);
-			// termino i processi figli
-			terminate_process(term_Pcb);
-		}
-	} */
 }
 
 
@@ -230,11 +216,20 @@ void passeren(int* semaddr){
 	*semaddr -= 1;
 		//Blocco il processo al semaforo in caso ce ne fosse bisogno
 	if(*semaddr < 0){
+
+		/*state_t* old_proc =((state_t*) SYSCALL_OLDAREA);
+		updateCurrentProc(old_proc);*/
+
 		pcb_t* cur_proc = runningProc();
 			//Blocco il processo al semaforo
 		insertBlocked(semaddr, cur_proc);
 
-//TEMPO DELLA GET CPU TIME DA GESTIRE
+		//TEMPO DELLA GET CPU TIME DA GESTIRE
+		if(cur_proc->kernel_timeNEW > 0){
+					cur_proc->kernel_time += getTOD_LO() - cur_proc->kernel_timeNEW;
+					cur_proc->kernel_timeNEW = 0;
+		}
+
 
 		cur_proc = NULL;
 		setNULL();
@@ -254,10 +249,9 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 	unsigned int* reg_command;
 	int result;
 
-	//debug
-	mStr("Entering do_io");
 
 	fintTYPEandLINE(&type, &line, devRegister);
+
 
 	if(type == 7) //Terminale
 	{
@@ -276,18 +270,6 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		reg_command = &(reg->dtp.command);
 	}
 
-	//debug
-	// termreg_t* tmpReg = (termreg_t*)devRegister;
-	// reg_status = &(tmpReg->transm_status);
-
-	// switch (*reg_status) {
-	// 	case DEV_NOT_INSTALLED:
-	//  		return(*reg_status);
-	//  	break;
-	//  	case DEV_S_READY:
-	//  		*reg_command = command;
-	//  	break;
-	//  }
 
 	if ((*reg_status & STATUSMASK) == DEV_S_READY)
 	{
@@ -302,16 +284,9 @@ int do_io(unsigned int command, unsigned int* devRegister, int subdevice)
 		result = *(int*)reg_status;
 	}
 
-	/**reg_command = command;
-	//Blocco il processo
-	blockProcAtDev(type,line,subdevice);
-	result = DEV_S_READY;*/
-
 	return(result);
 }
 
-//DEV_REGS_BASE indirizzo base dei registri per i device esterni
-//DEV_REGS_SIZE = sizeof devreg_t
 
 //Trova la linea del device (pline) e il tipo di device ptype (interrupt) dato un registro
 void fintTYPEandLINE(int* ptype, int* pline, unsigned int* preg )
@@ -387,36 +362,11 @@ int spec_passup(int type, state_t* old, state_t* new){
 
 //SYSCALL 8
 void get_pid_ppid(void** pid, void** ppid){
-	
+
 	pcb_t* cur_proc = runningProc();
-	
+
 	if(pid != NULL)
 		*pid = cur_proc;
 	if(ppid != NULL)
 		*ppid = cur_proc->p_parent;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

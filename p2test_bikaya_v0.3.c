@@ -292,6 +292,8 @@ void test() {
 unsigned int variable = 0;
 
 
+void aaaadebugTEST(){}
+
 /* p2 -- semaphore and cputime-SYS test process */
 void p2() {
     int   i;                          /* just to waste time  */
@@ -305,16 +307,23 @@ void p2() {
 
     print("p2 starts\n");
 
+    //aaaadebugTEST();
+
     /* initialize all semaphores in the s[] array */
     for (i = 0; i <= MAXSEM; i++)
         s[i] = 0;
+
+    //aaaadebugTEST();
 
     /* V, then P, all of the semaphores in the s[] array */
     for (i = 0; i <= MAXSEM; i++) {
         SYSCALL(VERHOGEN, (int)&s[i], 0, 0); /* V(S[I]) */
         SYSCALL(PASSEREN, (int)&s[i], 0, 0); /* P(S[I]) */
+        //aaaadebugTEST();
         if (s[i] != 0)
             print("error: p2 bad v/p pairs\n");
+        // else
+        //   print("ok\n");
     }
 
     print("p2 v/p pairs successfully\n");
